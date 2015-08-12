@@ -4,7 +4,7 @@
 /* global -Promise */
 "use strict";
 
-var AWS = require('../lib/aws')
+var AWS = require('../lib/aws');
 var Promise = require('bluebird');
 var _ = require('lodash');
 
