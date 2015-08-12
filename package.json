@@ -1,0 +1,29 @@
+{
+  "name": "route53-controller",
+  "version": "0.0.0",
+  "description": "Update route53 records based on describeInstances filters.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "jshint *.js test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/plediii/route53-controller.git"
+  },
+  "keywords": [
+    "route53",
+    "aws",
+    "dns"
+  ],
+  "author": "Paul J. Ledbetter III",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/plediii/route53-controller/issues"
+  },
+  "homepage": "https://github.com/plediii/route53-controller#readme",
+  "dependencies": {
+    "aws-sdk": "^2.1.44",
+    "jshint": "^2.8.0",
+    "pre-commit": "^1.1.1"
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "laxcomma": true,
+    "laxbreak": true,
+    "strict": true,
+    "globals": { 
+        "require": false,
+        "describe": false,
+        "it": false,
+        "exports": false,
+        "before": false,
+        "beforeEach": false
+    }
+}
