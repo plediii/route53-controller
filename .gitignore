@@ -2,3 +2,6 @@ trash/
 node_modules/
 *~
 \#*
+rules.json
+rules.json
+resources.json

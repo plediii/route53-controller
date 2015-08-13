@@ -4,7 +4,7 @@
   "description": "Update route53 records based on describeInstances filters.",
   "main": "index.js",
   "scripts": {
-    "lint": "jshint *.js test/*.js lib/*.js bin/*.js"
+    "lint": "jshint *.js lib/*.js bin/*.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,9 @@
     "aws-sdk": "^2.1.44",
     "bluebird": "^2.9.34",
     "jshint": "^2.8.0",
-    "lodash": "^3.10.1"
+    "lodash": "^3.10.1",
+    "minimist": "^1.1.3",
+    "moment": "^2.10.6"
   },
   "pre-commit": [
     "lint"
