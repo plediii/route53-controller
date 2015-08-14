@@ -101,44 +101,31 @@ if (argv._.length !== 1) {
     process.exit(1);
 }
 var resourcePath = argv._[0];
-var resource;
-try {
-    resource = JSON.parse(fs.readFileSync(resourcePath));
-} catch (ex) {
-    console.error('Failed to parse ' + resourcePath, ex, ex.stack);
-    process.exit(1);
-}
-
-if (!resource.hasOwnProperty('HostedZone')) {
-    console.error(resourcePath + ' is missing HostedZone');
-    process.exit(1);
-}
-if (!resource.hasOwnProperty('resources')) {
-    console.error(resourcePath + ' is missing resources');
-    process.exit(1);
-}
-var hostedZone = resource.HostedZone;
-var resources = resource.resources;
-Promise.map(_.pairs(resources), function (pair) {
-    var resourceName = pair[0];
-    var resource = pair[1];
-    if (!resource.hasOwnProperty('Filters')) {
-        throw new Error('Missing Filters for resource ' + resourceName);
-    }
-    if (!resource.hasOwnProperty('ResourceRecordSet')) {
-        throw new Error('Missing ResourceRecordSet for resource ' + resourceName);
-    }
-    return findInstanceIPs(resource.Filters)
-        .then(function (ips) {
-            return changeTemplate(recordSetTemplate(resource.ResourceRecordSet, ips));
-        });
-})
-.then(function (changes) {
-    return updateRecordSets(hostedZone, changes);
-})
-.then(function (data) {
-    console.log('Done.', data);
-})
-.catch(function (err) {
-    console.error('Error: ', err, err.stack);
-});
+require('../lib/resourceDefinition').read(resourcePath)
+    .then(function (resource) {
+        var hostedZone = resource.HostedZone;
+        var resources = resource.resources;
+        return Promise.map(_.pairs(resources), function (pair) {
+            var resourceName = pair[0];
+            var resource = pair[1];
+            if (!resource.hasOwnProperty('Filters')) {
+                throw new Error('Missing Filters for resource ' + resourceName);
+            }
+            if (!resource.hasOwnProperty('ResourceRecordSet')) {
+                throw new Error('Missing ResourceRecordSet for resource ' + resourceName);
+            }
+            return findInstanceIPs(resource.Filters)
+                .then(function (ips) {
+                    return changeTemplate(recordSetTemplate(resource.ResourceRecordSet, ips));
+                });
+        })
+            .then(function (changes) {
+                return updateRecordSets(hostedZone, changes);
+            });
+    })
+    .then(function (data) {
+        console.log('Done.', data);
+    })
+    .catch(function (err) {
+        console.error('Error: ', err, err.stack);
+    });

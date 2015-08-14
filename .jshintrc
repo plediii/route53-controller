@@ -1,7 +1,8 @@
 {
     "laxcomma": true,
     "laxbreak": true,
-    "strict": true,
+    "strict": true,	
+    "node": true,
     "globals": { 
         "require": false,
         "describe": false,
