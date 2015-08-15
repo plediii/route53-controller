@@ -10,6 +10,8 @@ var _ = require('lodash');
 var fs = require('fs');
 var minimist = require('minimist');
 var moment = require('moment');
+var resourceDefinition = require('../lib/resourceDefinition');
+var s3location = require('../lib/s3location');
 
 // AWS.config.update({region: 'us-east-1'});
 // AWS.config.update({region: 'us-west-1'});
@@ -96,12 +98,22 @@ var updateRecordSets = function (hostedZoneId, changes, comment) {
 };
 
 var argv = require('minimist')(process.argv.slice(2));
-if (argv._.length !== 1) {
-    console.error('Usage: ' + process.argv.slice(0, 2).join(' ') + ' resource.json');
+if (!(argv.hasOwnProperty('resource') || argv.hasOwnProperty('s3location'))) {
+    console.error('Usage: ' + process.argv.slice(0, 2).join(' ') + ' --resource resource.json --s3location location.json');
+    console.error(' Provide the resource definitions either in a local file (via --resource), or at an s3 location  (--s3location)');
     process.exit(1);
 }
-var resourcePath = argv._[0];
-require('../lib/resourceDefinition').read(resourcePath)
+
+var getResource;
+if (argv.hasOwnProperty('resource')) {
+    getResource = resourceDefinition.read(argv.resource);
+} else {
+    getResource = s3location.read(argv.s3location)
+    .then(s3location.download)
+    .then(resourceDefinition.parse);
+}
+
+getResource
     .then(function (resource) {
         var hostedZone = resource.HostedZone;
         var resources = resource.resources;
