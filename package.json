@@ -6,6 +6,11 @@
   "scripts": {
     "lint": "jshint *.js lib/*.js bin/*.js"
   },
+  "bin": {
+      "route53-controller-policy": "./bin/create-policy.js",
+      "route53-controller-update": "./bin/update.js",
+      "route53-controller-upload": "./bin/upload.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/plediii/route53-controller.git"
