@@ -10,6 +10,7 @@ var _ = require('lodash');
 var fs = require('fs');
 var minimist = require('minimist');
 var route53PolicyStatements = require('../lib/route53PolicyStatements');
+var ec2PolicyStatements = require('../lib/ec2PolicyStatements');
 var s3location = require('../lib/s3location');
 var s3PolicyStatements = require('../lib/s3PolicyStatements');
 
@@ -26,16 +27,15 @@ if (_.keys(argv).length < 2)  {
     console.log('  If --rolePolicy is provided, the policy will be created inline for the given role name.');
 }
 
-var getPolicyStatements;
+var getPolicyStatements = Promise.resolve(route53PolicyStatements().concat(ec2PolicyStatements()));
 if (argv.hasOwnProperty('s3location')) {
-    getPolicyStatements = s3location.read(argv.s3location)
-    .then(function (s3Location) {
-        return route53PolicyStatements().concat(s3PolicyStatements(s3Location));
+    getPolicyStatements = getPolicyStatements.then(function (statements) {
+        return s3location.read(argv.s3location)
+        .then(function (s3PolicyStatements) {
+            return statements.concat(s3PolicyStatements(argv.s3location));
+        });
     });
-} else {
-    getPolicyStatements = Promise.resolve(route53PolicyStatements());
 }
-
 var policyDescription = 'Policy for modifying route53 record sets created by route53-controller';
 
 getPolicyStatements
@@ -47,7 +47,8 @@ getPolicyStatements
     })
     .then(function (policy) {
         var policyDocument = JSON.stringify(policy, null, 4);
-        console.log('Policy: ', policyDocument);
+        console.log('Policy:');
+        console.log(policyDocument);
         var policyName = 'route53-controller';
         if (argv.hasOwnProperty('createPolicy')) {
             policyName = argv.createPolicy;
