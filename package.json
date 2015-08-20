@@ -6,6 +6,11 @@
   "scripts": {
     "lint": "jshint *.js lib/*.js bin/*.js"
   },
+  "bin": {
+    "route53-controller-policy": "./bin/create-policy.js",
+    "route53-controller-update": "./bin/update.js",
+    "route53-controller-upload": "./bin/upload.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/plediii/route53-controller.git"
@@ -25,6 +30,7 @@
     "aws-sdk": "^2.1.44",
     "bluebird": "^2.9.34",
     "jshint": "^2.8.0",
+    "jszip": "^2.5.0",
     "lodash": "^3.10.1",
     "minimist": "^1.1.3",
     "moment": "^2.10.6"
