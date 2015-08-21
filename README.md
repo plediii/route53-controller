@@ -132,6 +132,15 @@ IAM policy, and upload the zip file created by `./bin/lambda-package.js`.
 $ node bin/lambda-package.js --resource resource.json
 ```
 
+After uploading the lambda function, you could invoke it either with the AWS console, or via the CLI:
+```
+$ aws lambda invoke --region us-west-2 --function-name route53-controller  --invocation-type RequestResponse --log-type Tail  --payload '{}' lambda-output.txt
+```
+Make sure to invoke the function with the `region`and `function-name`
+you chose.  `route53-controller` does not currently read the payload.
+
+
+
 ## Storing `resource.json` in S3
 
 If `resource.json` must be updated frequently, it may be more
