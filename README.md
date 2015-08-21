@@ -51,6 +51,7 @@ by a `resource.json` file.  For example:
                     "Values": [ "foo.example" ]
                 }
             ],
+	    "PrivateIP": true,
             "ResourceRecordSet": { 
                 "Name": "foo.example.com",
                 "Type": "A",
@@ -82,6 +83,10 @@ The `ResourceRecordSet` is a `ResourceRecordSet` to be used in a
 `route53.changeResourceRecordSets` operation.  See [API
 documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
 for more information.
+
+By default, the public IP of each instance will be added to the record
+set.  If you would rather use the *private* IP, then add the attribute
+"PrivateIP" with a true value.
 
 Given a `resource.json` we may immediately update our resource record
 sets.  `route53-controller` includes a command line script in
