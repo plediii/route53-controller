@@ -139,7 +139,17 @@ $ aws lambda invoke --region us-west-2 --function-name route53-controller  --inv
 Make sure to invoke the function with the `region`and `function-name`
 you chose.  `route53-controller` does not currently read the payload.
 
+## Trigger Lambda function when autoscaling group changes
 
+See the Auto Scaling developer guide ["Getting Notifications When Your
+Auto Scaling Group
+Changes"](http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/ASGettingNotifications.html)
+to set up SNS notifications when your autoscaling group changes.
+
+Then see the Amazon Simple Notification Service Developer Guide
+["Invoking Lambda functions using Amazon SNS
+notifications"](http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html)
+to trigger the lambda function the SNS event.
 
 ## Storing `resource.json` in S3
 
