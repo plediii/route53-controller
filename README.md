@@ -29,53 +29,60 @@ by a `resource.json` file.  For example:
 
 ```javascript
 {
-  "HostedZone": "XXXXXXXXXXXXXX",
-  "resources": {
+    "HostedZone": "XXXXXXXXXXXXXX",
+    "resources": {
         "bar.example": {
-	    "Instances": [
-                "Region": "us-west-1",
-		"PrivateIP": true,
-	        "Filters": [
-                    {
-                        "Name": "tag:Name",
-                        "Values": [ "bar.example" ]
-                    }
-		]
-            ],
-            "ResourceRecordSet": { 
-                "Name": "bar.example.com",
-                "Type": "A",
-                "TTL": 30
-            }
-        },
-        "foo.example": {
-	    "Instances": [
+            "Instances": [
                 {
-                    "Region": "us-west-2",
+                    "Region": "us-west-1",
+                    "PrivateIP": true,
                     "Filters": [
                         {
                             "Name": "tag:Name",
-                            "Values": [ "foo.example" ]
-                        }
-                    ],
-                },
-                {
-                    "Region": "us-east-1",
-                    "Filters": [
-                        {
-                            "Name": "tag:Name",
-                            "Values": [ "foo.example" ]
+                            "Values": [
+                                "bar.example"
+                            ]
                         }
                     ]
                 }
             ],
-            "ResourceRecordSet": { 
-                "Name": "foo.example.com",
+            "ResourceRecordSet": {
+                "Name": "bar.example.com",
                 "Type": "A",
                 "TTL": 30
             }
         }
-
+    },
+    "foo.example": {
+        "Instances": [
+            {
+                "Region": "us-west-2",
+                "Filters": [
+                    {
+                        "Name": "tag: Name",
+                        "Values": [
+                            "foo.example"
+                        ]
+                    }
+                ]
+            },
+            {
+                "Region": "us-east-1",
+                "Filters": [
+                    {
+                        "Name": "tag: Name",
+                        "Values": [
+                            "foo.example"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "ResourceRecordSet": {
+            "Name": "foo.example.com",
+            "Type": "A",
+            "TTL": 30
+        }
     }
 }
 ```
