@@ -59,7 +59,7 @@ by a `resource.json` file.  For example:
                 "Region": "us-west-2",
                 "Filters": [
                     {
-                        "Name": "tag: Name",
+                        "Name": "tag:Name",
                         "Values": [
                             "foo.example"
                         ]
@@ -70,7 +70,7 @@ by a `resource.json` file.  For example:
                 "Region": "us-east-1",
                 "Filters": [
                     {
-                        "Name": "tag: Name",
+                        "Name": "tag:Name",
                         "Values": [
                             "foo.example"
                         ]
