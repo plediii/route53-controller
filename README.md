@@ -139,6 +139,18 @@ $ aws lambda invoke --region us-west-2 --function-name route53-controller  --inv
 Make sure to invoke the function with the `region`and `function-name`
 you chose.  `route53-controller` does not currently read the payload.
 
+## Uploading lambda code directly
+
+`route53-controller` provides a convenience script to upload the lambda file directly.
+
+```
+$ node bin/upload-lambda.js --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
+```
+
+`upload-lambda` will create a Lambda function `route53-controller` if
+one does not already exist, and update the function code if it does.
+
+
 ## Trigger Lambda function when autoscaling group changes
 
 See the Auto Scaling developer guide ["Getting Notifications When Your
