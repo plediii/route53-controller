@@ -32,11 +32,15 @@ by a `resource.json` file.  For example:
   "HostedZone": "XXXXXXXXXXXXXX",
   "resources": {
         "bar.example": {
-            "Filters": [
-                {
-                    "Name": "tag:Name",
-                    "Values": [ "bar.example" ]
-                }
+	    "Instances": [
+                "Region": "us-west-1",
+		"PrivateIP": true,
+	        "Filters": [
+                    {
+                        "Name": "tag:Name",
+                        "Values": [ "bar.example" ]
+                    }
+		]
             ],
             "ResourceRecordSet": { 
                 "Name": "bar.example.com",
@@ -45,13 +49,26 @@ by a `resource.json` file.  For example:
             }
         },
         "foo.example": {
-            "Filters": [
+	    "Instances": [
                 {
-                    "Name": "tag:Name",
-                    "Values": [ "foo.example" ]
+                    "Region": "us-west-2",
+                    "Filters": [
+                        {
+                            "Name": "tag:Name",
+                            "Values": [ "foo.example" ]
+                        }
+                    ],
+                },
+                {
+                    "Region": "us-east-1",
+                    "Filters": [
+                        {
+                            "Name": "tag:Name",
+                            "Values": [ "foo.example" ]
+                        }
+                    ]
                 }
             ],
-	    "PrivateIP": true,
             "ResourceRecordSet": { 
                 "Name": "foo.example.com",
                 "Type": "A",
@@ -65,28 +82,39 @@ by a `resource.json` file.  For example:
 
 Here, the `resource.json` file describes modifying the recordset in
 the given HostedZone.  All instances tagged with the `Name` of
-`bar.example` are included as IPs in the record set `bar.example.com`,
-and all instances tagged with the `Name` of `foo.example` are included
+`bar.example` in the `us-west-1` region are included as IPs in the
+record set `bar.example.com`.  All instances tagged with the `Name` of
+`foo.example` in the `us-west-2` and `us-east-1` regions are included
 as IPs in the record set `foo.example.com`.
 
 The root `resources` attribute is a map of resource names to the pairs
 of `Filters` and `ResourceRecordSet`.  The resource names are for
 documentation purposes only and are arbitrary.
 
-For each resource in `resources`, the `Filters` attribute is a list of
-filters to be used in an `ec2.describeInstances` operation.  See the
-[API
-documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeInstances-property)
-for more information.
-
-The `ResourceRecordSet` is a `ResourceRecordSet` to be used in a
+For each logical resource below the `resources` attribute,
+`ResourceRecordSet` describes the record set to be updated.  The
+`ResourceRecordSet` value will used in a
 `route53.changeResourceRecordSets` operation.  See [API
 documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
 for more information.
 
+For each logical resource, the `Instances` attribute describes the
+instances whose IPs will be used to update the record set.  The
+`Instances` value should be an array of JSON objects representing
+specifications for finding the instances.  Each instance object should
+consist in a required set of `Filters`, and optional `Region` and
+`PrivateIP`.
+
+For each instance object, the `Filters` attribute is a list of filters
+to be used in an `ec2.describeInstances` operation.  See the [API
+documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeInstances-property)
+for more information.  The `ec2.describeInstances` applies to only one
+region at a time.  The instance object should include a `Region`
+attribute to indicate which region in which to find the instances.
+
 By default, the public IP of each instance will be added to the record
-set.  If you would rather use the *private* IP, then add the attribute
-"PrivateIP" with a true value.
+set.  If you would rather use the *private* IP, then add the optional
+attribute "PrivateIP" with a true value.
 
 Given a `resource.json` we may immediately update our resource record
 sets.  `route53-controller` includes a command line script in
