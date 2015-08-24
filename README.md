@@ -29,7 +29,7 @@ by a `resource.json` file.  For example:
 
 ```javascript
 {
-    "HostedZone": "XXXXXXXXXXXXXX",
+    "HostedZone": "Z148QEXAMPLE8V",
     "resources": {
         "bar.example": {
             "Instances": [
@@ -138,12 +138,16 @@ line or by a lambda process, we require appropriate IAM permissions to
 describe the EC2 instances and update the record sets.  
 
 The script `./bin/create-policy.js` can create the necessary policy.
-With no arguments, it will simply display the required policy.
+It requires at least a local copy of the `resource.json` file, where
+it will prefer to read the HostedZone attribute.  Or, if a local copy
+is not available, an `s3location.json` file to describe where to fetch
+the `resource.json`. 
+
 Alternatively, it can create a policy which may be attached to roles
 or users by including the `--createPolicy` option:
 
 ```
-$ node bin/create-policy.js --createPolicy route53-controller
+$ node bin/create-policy.js --resource resource.json --createPolicy route53-controller
 ```
 
 `./bin/create-policy.js` may also attach the policy inline to an
@@ -151,8 +155,15 @@ existing user or role by providing the `--userPolicy` or
 `--rolePolicy` respectively.
 
 ```
-$ node bin/create-policy.js --rolePolicy lambda_role
+$ node bin/create-policy.js --resource resource.json --rolePolicy lambda_role
 ```
+
+If an `s3location.json` file is provided, the policy will include read
+access to that s3 location.
+```
+$ node bin/create-policy.js --resource resource.json --s3location s3location.json
+```
+
 
 ## Creating a lambda deployment
 

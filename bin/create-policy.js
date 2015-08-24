@@ -13,29 +13,50 @@ var route53PolicyStatements = require('../lib/route53PolicyStatements');
 var ec2PolicyStatements = require('../lib/ec2PolicyStatements');
 var s3location = require('../lib/s3location');
 var s3PolicyStatements = require('../lib/s3PolicyStatements');
+var getResourceDefinition = require('../lib/getResourceDefinition');
 
 var iam = new AWS.IAM();
 var route53 = new AWS.Route53();
 
 var argv = require('minimist')(process.argv.slice(2));
-if (_.keys(argv).length < 2)  {
+if (_.keys(argv).length < 2 
+   || (!argv.hasOwnProperty('s3location') && !argv.hasOwnProperty('resource')))  {
     console.log('Create a policy for route53 controller.');
     console.log('Usage: ' + process.argv.slice(0, 2).join(' ') + ' [options]');
     console.log('');
     console.log('Options: ');
     console.log(' --s3location s3location.json        Add policy permissions to access the resources at a specific s3 location.');
+    console.log(' --resource resource.json            If s3location is not provided, resource.json is required for the HostedZoneId.');
     console.log(' --createPolicy policyName           Create an IAM policy with the given name.');
     console.log(' --userPolicy userName               Attach the policy inline to the given IAM user.');
     console.log(' --rolePolicy roleName               Attach the policy inline to the given IAM role.');
     console.log('');
+    process.exit(1);
 }
 
-var getPolicyStatements = Promise.resolve(route53PolicyStatements().concat(ec2PolicyStatements()));
+var getResourceParams;
+if (argv.hasOwnProperty('resource')) {
+    // prefer to read from local copy
+    getResourceParams = {
+        resource: argv.resource
+    };
+} else {
+    getResourceParams = {
+        s3Location: argv.s3location
+    };
+}
+
+var getPolicyStatements = getResourceDefinition(getResourceParams)
+.then(function (resource) {
+    return route53PolicyStatements(resource).concat(ec2PolicyStatements());
+});
+
 if (argv.hasOwnProperty('s3location')) {
     getPolicyStatements = getPolicyStatements.then(function (statements) {
+        console.log('initial s3location statements ', statements);
         return s3location.read(argv.s3location)
-        .then(function (s3PolicyStatements) {
-            return statements.concat(s3PolicyStatements(argv.s3location));
+        .then(function (s3Location) {
+            return statements.concat(s3PolicyStatements(s3Location));
         });
     });
 }
