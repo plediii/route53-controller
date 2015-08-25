@@ -30,7 +30,7 @@ by a `resource.json` file.  For example:
 ```javascript
 {
     "HostedZone": "Z148QEXAMPLE8V",
-    "resources": {
+    "Resources": {
         "bar.example": {
             "Instances": [
                 {
@@ -94,11 +94,11 @@ record set `bar.example.com`.  All instances tagged with the `Name` of
 `foo.example` in the `us-west-2` and `us-east-1` regions are included
 as IPs in the record set `foo.example.com`.
 
-The root `resources` attribute is a map of resource names to the pairs
+The root `Resources` attribute is a map of resource names to the pairs
 of `Filters` and `ResourceRecordSet`.  The resource names are for
 documentation purposes only and are arbitrary.
 
-For each logical resource below the `resources` attribute,
+For each logical resource below the `Resources` attribute,
 `ResourceRecordSet` describes the record set to be updated.  The
 `ResourceRecordSet` value will used in a
 `route53.changeResourceRecordSets` operation.  See [API
