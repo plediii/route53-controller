@@ -53,7 +53,6 @@ var getPolicyStatements = getResourceDefinition(getResourceParams)
 
 if (argv.hasOwnProperty('s3location')) {
     getPolicyStatements = getPolicyStatements.then(function (statements) {
-        console.log('initial s3location statements ', statements);
         return s3location.read(argv.s3location)
         .then(function (s3Location) {
             return statements.concat(s3PolicyStatements(s3Location));
