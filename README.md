@@ -7,20 +7,23 @@ automatically add the instances to a load balancer, but there are no
 facilities to automatically add the new instance to a route53 record
 set. 
 
-An alternative option to `route53-controller` is to include a script
-in the image or user data which will modify the record set whenever
-the new instance boots.  While `route53-controller` could be the
-script to provide this functionality, this route requires including
-permissions to modify route53 record sets for any process executing on
-the instance.  By moving the record set modification to an AWS Lambda
-function, only this restricted piece of code requires the permissions
-to modify record sets.
+`route53-controller` provides scripts to set up an AWS Lambda function
+which will update route53 record sets.  The user provides pairs of
+`ec2.describeInstances` Filters and associated
+`route53.changeResourceRecordSets` ResourceRecordSets.  When the
+lambda function is executed, the IPs of the instances matching the
+filters are added to the record set.
 
-`route53-controller` provides the scripts to automatically modify
-route53 record sets from an AWS Lambda function.  The user provides
-pairs of `ec2.describeInstances` Filters and associated route53 record
-sets.  When the lambda function is executed, the IPs of the instances
-matching the filters are added to the record set.
+
+An alternative to `route53-controller` would be to include a script in
+ the image or user data which will modify the record set when the new
+ instance boots.  `route53-controller` can itself run as a standalone
+ script (see `./bin/update.js`), however doing so requires including
+ permissions to modify route53 record sets for the entire instance.
+ By moving the record set modification to an AWS Lambda function, only
+ this restricted piece of code requires the permission to modify
+ record sets.
+
 
 ## `resource.json`
 
