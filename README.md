@@ -25,11 +25,92 @@ An alternative to `route53-controller` would be to include a script in
  record sets.
 
 
-## `resource.json`
+## Resource description: *resource.json* 
 
-The list of instances and associated route53 record sets are described
-by a `resource.json` file.  For example:
+The instance filters and resource record set pairs are described by a JSON blob, referred to as *resource.json*.  
 
+Note that given a `resource.json` we may immediately update our resource record
+sets. It is not necessary to upload a Lambda function.   `route53-controller` includes a command line script in `./bin/update.js` which will perform the update.
+
+```
+$ node bin/update.js --resource resource.json
+```
+
+The root structure of the *resource.json* is 
+```javascript
+{
+    "HostedZone": "Z148QEXAMPLE8V",
+    "Resources": {
+        /* Logical IDs of (Instance -> record set) pairs */
+    }
+ }
+```
+
+#### **HostedZone**
+
+This must be the ID of a pre-existing route53 Hosted Zone.  There may be only *HostedZone* one per *resource.json*.  If multiple *HostedZone*s must be controlled, you will need to create additional *route53-controller* Lambda functions.
+
+#### **Resources**
+
+The *Resources* attribute is a list of all the record sets which will be modified along with the filters describing the instances whose IPs will be associated to the record set.  There may be one or more instances/record set pairs.  The format of the *Resources* is
+```javascript
+"Resources": {
+   "ResourceID": {
+      "ResourceRecordSet": {  
+         /* Description of the Route53 resource record set update */
+      },
+      "Instances": [
+         /* One or more EC2 instance descriptions to be associated to the route53 record set */
+      ]
+      
+   }
+}
+```
+
+The **ResourceID** of the instances/record set pairs is used to *name* the pair for convenience and in reporting syntax errors, but will not affect the logical operation of record set update.  Any valid JSON attribute name is acceptable.
+
+
+##### ResourceRecordSet
+
+The **ResourceRecordSet** describes the Resource Record to be updated.  This object will used directly in a
+**route53.changeResourceRecordSets** operation, except that the *ResourceRecords* (this list of instance IPs) will be filled in by *route53-controller*.  As such, *route53-controller* *requires* that the **Name** and **Type** attributes be present in *resource.json*.  See the  [changeResourceRecordSets API
+documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property) for more information about possible attributes.
+
+The basic required format is
+```javascript
+"ResourceRecordSet": {
+    "Name": "bar.example.com", // domain name to be modified
+    "Type": "A"                // type of the resource
+ }
+```
+
+##### Instances
+
+The instances attribute is an array of descipriptions of EC2 instance IPs to be associated with the *ResourceRecordSet*.  The format is 
+```javascript
+"Instances": [
+   /* one ore more instance descriptions */
+   {
+      "Filters": [
+         // One or more ec2.describeInstances filters
+      ],
+      "PrivateIP": true || false, // Optional: whether to use the instance's private IP
+      "Region": "us-east-1" || "us-west-2" || "eu-central-1" || etc. // the AWS Region in which to find the instances
+   }
+ ]
+```
+
+By default, the *public IP* of  each EC2 instance will be inserted into the record set.  However, if the **PrivateIP** attribute is present and `true`, then the *private IPs* will be used instead. 
+
+The **Region** attribute specified the AWS region in which to find the instances. Only *one* region may be specified per *instance description*.  If the record set must include IPs of instances from different regions, then *multiple* instance descriptions must be used.
+
+The **Filters** attribute is an array of descriptions of which EC2 instances will be included in the new value of the route53 record set.  The filters will be used directly in an `ec2.describeInstances` operation without modification.  See the [describeInstances API
+documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeInstances-property)
+for information and examples of possible filters.  
+
+### Example *resources.json*
+
+A complete mock example of a *resource.json* is
 ```javascript
 {
     "HostedZone": "Z148QEXAMPLE8V",
@@ -90,49 +171,11 @@ by a `resource.json` file.  For example:
 }
 ```
 
-Here, the `resource.json` file describes modifying the recordset in
-the given HostedZone.  All instances tagged with the `Name` of
-`bar.example` in the `us-west-1` region are included as IPs in the
-record set `bar.example.com`.  All instances tagged with the `Name` of
-`foo.example` in the `us-west-2` and `us-east-1` regions are included
-as IPs in the record set `foo.example.com`.
+Here, the *resource.json* file describes modifying the recordset in
+a fake example HostedZone.  
 
-The root `Resources` attribute is a map of resource names to the pairs
-of `Filters` and `ResourceRecordSet`.  The resource names are for
-documentation purposes only and are arbitrary.
-
-For each logical resource below the `Resources` attribute,
-`ResourceRecordSet` describes the record set to be updated.  The
-`ResourceRecordSet` value will used in a
-`route53.changeResourceRecordSets` operation.  See [API
-documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
-for more information.
-
-For each logical resource, the `Instances` attribute describes the
-instances whose IPs will be used to update the record set.  The
-`Instances` value should be an array of JSON objects representing
-specifications for finding the instances.  Each instance object should
-consist in a required set of `Filters`, and optional `Region` and
-`PrivateIP`.
-
-For each instance object, the `Filters` attribute is a list of filters
-to be used in an `ec2.describeInstances` operation.  See the [API
-documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeInstances-property)
-for more information.  The `ec2.describeInstances` applies to only one
-region at a time.  The instance object should include a `Region`
-attribute to indicate which region in which to find the instances.
-
-By default, the public IP of each instance will be added to the record
-set.  If you would rather use the *private* IP, then add the optional
-attribute "PrivateIP" with a true value.
-
-Given a `resource.json` we may immediately update our resource record
-sets.  `route53-controller` includes a command line script in
-`./bin/update.js` which will perform the update.
-
-```
-$ node bin/update.js --resource resource.json
-```
+* All instances tagged with the `Name` of `bar.example` in the `us-west-1` region are included as IPs in the record set `bar.example.com`.  
+* All instances tagged with the `Name` of `foo.example` in the `us-west-2` and `us-east-1` regions are included as IPs in the record set `foo.example.com`.
 
 ## IAM policies
 
