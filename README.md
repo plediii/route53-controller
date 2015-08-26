@@ -102,7 +102,7 @@ The instances attribute is an array of descipriptions of EC2 instance IPs to be 
 
 By default, the *public IP* of  each EC2 instance will be inserted into the record set.  However, if the **PrivateIP** attribute is present and `true`, then the *private IPs* will be used instead. 
 
-The **Region** attribute specified the AWS region in which to find the instances. Only *one* region may be specified per *instance description*.  If the record set must include IPs of instances from different regions, then *multiple* instance descriptions must be used.
+The **Region** attribute specifies the AWS region in which to find the instances. Only *one* region may be specified per *instance description*.  If the record set must include IPs of instances from different regions, then *multiple* instance descriptions must be used.
 
 The **Filters** attribute is an array of descriptions of which EC2 instances will be included in the new value of the route53 record set.  The filters will be used directly in an `ec2.describeInstances` operation without modification.  See the [describeInstances API
 documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeInstances-property)
