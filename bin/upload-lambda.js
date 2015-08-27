@@ -11,8 +11,7 @@ var zipDeployment = require('../lib/zipDeployment');
 var functionName = 'route53-controller';
 
 var argv = require('minimist')(process.argv.slice(2));
-if (!((argv.hasOwnProperty('resource') || argv.hasOwnProperty('s3location')) 
-      && argv.hasOwnProperty('role'))) {
+if (!((argv.hasOwnProperty('resource') || argv.hasOwnProperty('s3location')))) {
     console.error('Upload route53-controller Lambda function.');
     console.error('Usage: ' + process.argv.slice(0, 2).join(' ') + ' [options]');
     console.error('');
@@ -28,7 +27,7 @@ if (!((argv.hasOwnProperty('resource') || argv.hasOwnProperty('s3location'))
     process.exit(1);
 }
 
-functionName = argv.functionName || functionName;
+functionName = argv.name || functionName;
 
 var createFunction = function (params) {
     return new Promise(function (resolve, reject) {
@@ -80,23 +79,28 @@ Promise.join(getS3Location, getResource
                  });
              })
     .then(function (zipContent) {
-        return createFunction({
-            Code: {  ZipFile: zipContent }
-            , FunctionName: functionName
-            , Handler: 'lambda-index.handler'
-            , Role: roleARN
-            , Description: 'route53-controller Lambda function'
-            , Runtime: 'nodejs'
-            , Timeout: 10
+        return updateFunctionCode({ 
+            FunctionName: functionName
+            , ZipFile: zipContent 
         })
         .catch(function (err) {
-            if (err.code === 'ResourceConflictException') {
-                return updateFunctionCode({ 
-                    FunctionName: functionName
-                    , ZipFile: zipContent 
-                });
-            } else {
-                throw err;
+            if (err.code === 'ResourceNotFoundException') {
+                if (!roleARN) {
+                    console.error('');
+                    console.error('The Lambda function named ' + functionName + ' does not already exist.  A role ARN will be necessary to create a new function.');
+                    console.error('');
+                    throw err;
+                } else {
+                    return createFunction({
+                        Code: {  ZipFile: zipContent }
+                        , FunctionName: functionName
+                        , Handler: 'lambda-index.handler'
+                        , Role: roleARN
+                        , Description: 'route53-controller Lambda function'
+                        , Runtime: 'nodejs'
+                        , Timeout: 10
+                    });
+                }
             }
         });
     })

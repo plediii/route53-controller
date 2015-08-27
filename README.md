@@ -239,8 +239,12 @@ you chose.  `route53-controller` does not currently read the payload.
 $ node bin/upload-lambda.js --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
 ```
 
-`upload-lambda` will create a Lambda function `route53-controller` if
-one does not already exist, and update the function code if it does.
+`upload-lambda` will first attempt to update the deployment package of
+an existing Lambda function named `route53-controller`.  If the Lambda
+function does not already exist, `upload-lambda` will attempt to
+create one.  An ARN for an existing IAM Role must be provided to
+create a new Lambda function.
+
 
 
 ## Trigger Lambda function when autoscaling group changes
