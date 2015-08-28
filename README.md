@@ -89,7 +89,7 @@ The basic required format is
 The instances attribute is an array of descipriptions of EC2 instance IPs to be associated with the *ResourceRecordSet*.  The format is 
 ```javascript
 "Instances": [
-   /* one ore more instance descriptions */
+   /* one or more instance descriptions */
    {
       "Filters": [
          // One or more ec2.describeInstances filters
