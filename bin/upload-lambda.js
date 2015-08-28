@@ -101,6 +101,8 @@ Promise.join(getS3Location, getResource
                         , Timeout: 10
                     });
                 }
+            } else {
+                throw err;
             }
         });
     })
