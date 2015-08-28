@@ -72,15 +72,21 @@ The **ResourceID** of the instances/record set pairs is used to *name* the pair 
 
 ##### ResourceRecordSet
 
-The **ResourceRecordSet** describes the Resource Record to be updated.  This object will used directly in a
-**route53.changeResourceRecordSets** operation, except that the *ResourceRecords* (this list of instance IPs) will be filled in by *route53-controller*.  As such, *route53-controller* *requires* that the **Name** and **Type** attributes be present in *resource.json*.  See the  [changeResourceRecordSets API
-documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property) for more information about possible attributes.
+The **ResourceRecordSet** describes the Resource Record to be updated.
+This object will used directly in a
+**route53.changeResourceRecordSets** operation, except that the
+*ResourceRecords* (this list of instance IPs) will be filled in by
+*route53-controller*.  The *Type* of record will also, by default, be
+set to `"A"`.  As such, *route53-controller* *requires* that the
+**Name** attribute be present in *resource.json*.  See the
+[changeResourceRecordSets API
+documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
+for more information about possible attributes.
 
 The basic required format is
 ```javascript
 "ResourceRecordSet": {
     "Name": "bar.example.com", // domain name to be modified
-    "Type": "A"                // type of the resource
  }
 ```
 
