@@ -4,7 +4,7 @@
   "description": "Update route53 records based on describeInstances filters.",
   "main": "index.js",
   "scripts": {
-    "lint": "jshint *.js lib/*.js bin/*.js"
+    "lint": "jshint *.js lib/*.js bin/*.js test/*.js"
   },
   "bin": {
     "route53-controller-policy": "./bin/create-policy.js",
@@ -39,6 +39,7 @@
     "lint"
   ],
   "devDependencies": {
-    "pre-commit": "^1.1.1"
+    "pre-commit": "^1.1.1",
+    "tape": "^4.2.0"
   }
 }
