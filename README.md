@@ -1,4 +1,4 @@
-# route53-controller
+# route53-controller [![Build Status](https://travis-ci.org/plediii/route53-controller.svg)](https://travis-ci.org/plediii/route53-controller)
 
 When launching new EC2 instances in AWS, it is often desirable to add
 the new instance's IP to a route53 record set.  For instance when an
