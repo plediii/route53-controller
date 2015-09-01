@@ -4,6 +4,18 @@ var test = require('tape');
 var m = require('../lib/updateRecordSets');
 
 test('updateRecordSets', function (t) {
+    t.test('changeTemplate', function (s) {
+        s.plan(1);
+        s.deepEqual({
+            Action: 'UPSERT'
+            , ResourceRecordSet: {
+                a: 'z'
+            }
+        }, m.changeTemplate({ a: 'z' }),
+                    "Fills in ResourceRecordSet.");
+    });
+
+
     t.test('recordSetTemplate', function (s) {
         s.plan(6);
         s.deepEqual({
