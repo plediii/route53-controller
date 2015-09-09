@@ -217,4 +217,87 @@ test('updateRecordSets', function (t) {
             r.equal('la-region', ec2.config.region);
         });
     });
+
+    t.test('findInstances', function (s) {
+        s.test('calls provided ec2.describeInstances', function (r) {
+            r.plan(1);
+            m.findInstances({
+                describeInstances: function (params, cb) {
+                    r.pass('Calls describeInstances on ec2');
+                }
+            });
+        });
+
+        s.test('returns a promise', function (r) {
+            r.plan(1);
+            r.ok(_.isFunction(m.findInstances({
+                describeInstances: function (params, cb) {}
+            }).then), 'Returns thenable');
+        });
+
+        s.test('rejects on describeInstances error ', function (r) {
+            r.plan(1);
+            m.findInstances({
+                describeInstances: function (params, cb) {
+                    return cb('describeInstances');
+                }
+            })
+            .catch(function (err) {
+                r.equal('describeInstances', err);
+            });
+        });
+
+        s.test('returns flattened Reservation.Instances ', function (r) {
+            r.plan(1);
+            m.findInstances({
+                describeInstances: function (params, cb) {
+                    return cb(null, {
+                        Reservations: [
+                            { 
+                                Instances: [
+                                    {
+                                        a: 1
+                                    }
+                                    , {
+                                        b: 2
+                                    }
+                                ]
+                            }
+                            , { 
+                                Instances: [
+                                    {
+                                        c: 3
+                                    }
+                                ]
+                            }
+                        ]
+                    });
+                }
+                , filters: []
+            })
+            .then(function (instances) {
+                r.deepEqual(instances, [
+                    {
+                        a: 1
+                    }
+                    , {
+                        b: 2
+                    }
+                    , {
+                        c: 3
+                    }
+                ]);
+            });
+        });
+
+        s.test('calls describeInstances with provided filters', function (r) {
+            r.plan(1);
+            m.findInstances({
+                describeInstances: function (params, cb) {
+                    r.deepEqual(['provided'], params.Filters);
+                }
+            }, ['provided']);
+        });
+    });
+
 });
