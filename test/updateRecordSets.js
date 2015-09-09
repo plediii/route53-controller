@@ -3,6 +3,7 @@
 var test = require('tape');
 var m = require('../lib/updateRecordSets');
 var _ = require('lodash');
+var AWS = require('aws-sdk');
 
 test('updateRecordSets', function (t) {
     t.test('changeTemplate', function (s) {
@@ -204,6 +205,16 @@ test('updateRecordSets', function (t) {
                     r.equal(params.ChangeBatch.Comment, 'comment', 'Third argument overrides comment');
                 }
             }, 'HostedZone', [ 'change' ], 'comment');
+        });
+    });
+
+    t.test('resourceEC2', function (s) {
+        s.test('uses resource spec region', function (r) {
+            r.plan(1);
+            var ec2 = m.resourceEC2(AWS, {
+                "Region": "la-region"
+            });
+            r.equal('la-region', ec2.config.region);
         });
     });
 });
