@@ -300,4 +300,33 @@ test('updateRecordSets', function (t) {
         });
     });
 
+    t.test('instancePublicIP', function (s) {
+        s.test('returns PublicIPAddress', function (r) {
+            r.plan(1);
+            r.equal('127.1.1.1', m.instancePublicIp({
+                PublicIpAddress: '127.1.1.1'
+            }), 'Should return public Ip address');
+        });
+
+        s.test('returns falsy if PublicIPAddress is not present', function (r) {
+            r.plan(1);
+            r.notOk(m.instancePublicIp({
+            }), 'Should return falsy when PrivateIp is not present');
+        });
+    });
+
+    t.test('instancePrivateIP', function (s) {
+        s.test('returns PrivateIpAddress', function (r) {
+            r.plan(1);
+            r.equal('127.1.1.1', m.instancePrivateIp({
+                PrivateIpAddress: '127.1.1.1'
+            }), 'Should return private Ip');
+        });
+
+        s.test('returns falsy if PrivateIpAddress is not present', function (r) {
+            r.plan(1);
+            r.notOk(m.instancePrivateIp({
+            }), 'Should return falsy when PrivateIp is not present');
+        });
+    });
 });
