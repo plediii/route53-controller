@@ -202,7 +202,7 @@ a fake example HostedZone.
 
 `route53-controller` provides a convenience script to upload the
 Lambda function directly.  By default, *route53-contoller* will name
-the Lambda function as `route53-controller`.  You may provide a
+the Lambda function as `route53-controller`.  You may specify a
 different name by providing the `--name` argument.
 
 `upload-lambda` will first attempt to update an existing deployment.
@@ -218,8 +218,8 @@ $ node bin/upload-lambda.js --resource resource.json --role arn:aws:iam::NNNNNNN
 
 ## Creating a Lambda deployment
 
-If you prefer to upload function manually *route53-controller* can be
-used to create the AWS Lambda deployment package.  Follow, for
+If you prefer to upload the function manually *route53-controller* can
+be used to create the AWS Lambda deployment package.  Follow, for
 example, the [AWS Lambda
 walkthrough](http://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-prepare.html).
 Create a lambda execution role with the required `route53-controller`
@@ -237,8 +237,8 @@ After uploading the lambda function, you may invoke it either with the AWS conso
 ```
 $ aws lambda invoke --region us-west-2 --function-name route53-controller  --invocation-type RequestResponse --log-type Tail  --payload '{}' lambda-output.txt
 ```
-Make sure to invoke the function with the `region`and `function-name`
-you chose.  `route53-controller` does not currently read the payload.
+Make sure to invoke the function with the `region` and `function-name`
+you chose.  The payload does not have any effect on the `route53-controller` behavior.
 
 ## Trigger Lambda function when autoscaling group changes
 
@@ -250,7 +250,7 @@ to set up SNS notifications when your autoscaling group changes.
 Then see the Amazon Simple Notification Service Developer Guide
 ["Invoking Lambda functions using Amazon SNS
 notifications"](http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html)
-to trigger the lambda function the SNS event.
+to trigger the lambda function when the SNS event occurs.
 
 
 ## IAM policies
