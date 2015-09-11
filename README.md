@@ -7,31 +7,22 @@ automatically add the instances to a load balancer, but there are no
 facilities to automatically add the new instance to a route53 record
 set. 
 
-`route53-controller` provides scripts to set up an AWS Lambda function
-which will update route53 record sets.  The user provides pairs of
-`ec2.describeInstances` Filters and associated
-`route53.changeResourceRecordSets` ResourceRecordSets.  When the
-lambda function is executed, the IPs of the instances matching the
-filters are added to the record set.
+*route53-controller* provides the service to automatically add
+instances to Route53 record sets.  You provide a `resource.json`
+describing which instances to add to which record set, and
+*route53-controller* adds the appropriate IPs to your record sets.
 
-
-An alternative to `route53-controller` would be to include a script in
- the image or user data which will modify the record set when the new
- instance boots.  `route53-controller` can itself run as a standalone
- script (see `./bin/update.js`), however doing so requires including
- permissions to modify route53 record sets for the entire instance.
- By moving the record set modification to an AWS Lambda function, only
- this restricted piece of code requires the permission to modify
- record sets.
-
+`route53-controller` can be run as standalone CLI script, but also
+provides scripts which build and install an AWS Lambda function to
+perform the task.  
 
 ## Resource description: *resource.json* 
 
-The instance filters and resource record set pairs are described by a JSON blob, referred to as *resource.json*.  
+The instances and resource record sets to which to add the instances'
+IPs are described by a JSON format, referred to as *resource.json*.
 
-Note that given a `resource.json` we may immediately update our resource record
-sets. It is not necessary to upload a Lambda function.   `route53-controller` includes a command line script in `./bin/update.js` which will perform the update.
-
+Given a `resource.json` we may immediately update our resource record
+sets by using `./bin/update.js`. It is not necessary to upload a Lambda function.
 ```
 $ node bin/update.js --resource resource.json
 ```
@@ -41,18 +32,25 @@ The root structure of the *resource.json* is
 {
     "HostedZone": "Z148QEXAMPLE8V",
     "Resources": {
-        /* Logical IDs of (Instance -> record set) pairs */
+        /* Resources describing (Instance -> record set) pairs */
     }
  }
 ```
 
 #### **HostedZone**
 
-This must be the ID of a pre-existing route53 Hosted Zone.  There may be only *HostedZone* one per *resource.json*.  If multiple *HostedZone*s must be controlled, you will need to create additional *route53-controller* Lambda functions.
+The *HostedZone* is ID of a pre-existing route53 Hosted Zone.  There
+may be only *HostedZone* one per *resource.json*.  If multiple
+*HostedZone*s must be controlled, you will need to create additional
+*route53-controller* resource descriptions, and AWS Lambda functions.
 
 #### **Resources**
 
-The *Resources* attribute is a list of all the record sets which will be modified along with the filters describing the instances whose IPs will be associated to the record set.  There may be one or more instances/record set pairs.  The format of the *Resources* is
+The *Resources* attribute is a list of all the record sets which will
+be modified, along with the filters describing the instances whose IPs
+will be associated to the record set.  There may be one or more
+instances/record set pairs.  The format of the *Resources* is
+
 ```javascript
 "Resources": {
    "ResourceID": {
@@ -67,22 +65,13 @@ The *Resources* attribute is a list of all the record sets which will be modifie
 }
 ```
 
-The **ResourceID** of the instances/record set pairs is used to *name* the pair for convenience and in reporting syntax errors, but will not affect the logical operation of record set update.  Any valid JSON attribute name is acceptable.
-
+The **ResourceID** of the instances/record set pair is used to *name*
+the pair for convenience, but has no effect on the logical operation
+of the record set update.  Any valid JSON attribute name is acceptable.
 
 ##### ResourceRecordSet
 
 The **ResourceRecordSet** describes the Resource Record to be updated.
-This object will used directly in a
-**route53.changeResourceRecordSets** operation, except that the
-*ResourceRecords* (this list of instance IPs) will be filled in by
-*route53-controller*.  The *Type* of record will also, by default, be
-set to `"A"`.  As such, *route53-controller* *requires* that the
-**Name** attribute be present in *resource.json*.  See the
-[changeResourceRecordSets API
-documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
-for more information about possible attributes.
-
 The basic required format is
 ```javascript
 "ResourceRecordSet": {
@@ -90,9 +79,30 @@ The basic required format is
  }
 ```
 
+*route53-controller* will locate the instances to be used in the
+record set, then it will use the *ResourceRecordSet* set to update the
+record.
+
+
+After *route53-controller* executes, **all** of the IPs associated
+with the record set will be replaced.
+
+The *ResourceRecordSet* object will used as the `ResourceRecordSet`
+parameter in a call to the AWS SDK
+**route53.changeResourceRecordSets** function, except:
+
+* *ResourceRecords* (the list of instance IPs) will be the list of IPs
+* The required *Type* will default to "A"
+
+ See the [changeResourceRecordSets API
+documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
+for more information about attributes.
+
 ##### Instances
 
-The instances attribute is an array of descipriptions of EC2 instance IPs to be associated with the *ResourceRecordSet*.  The format is 
+The *Instances* attribute is an array of descipriptions of EC2
+instance IPs to be associated with the *ResourceRecordSet*.  The
+format is
 ```javascript
 "Instances": [
    /* one or more instance descriptions */
@@ -106,13 +116,21 @@ The instances attribute is an array of descipriptions of EC2 instance IPs to be 
  ]
 ```
 
-By default, the *public IP* of  each EC2 instance will be inserted into the record set.  However, if the **PrivateIP** attribute is present and `true`, then the *private IPs* will be used instead. 
+By default, the *public IP* of each EC2 instance will be used.
+However, if the **PrivateIP** attribute is present and `true`, then
+the *private IPs* will be used instead.
 
-The **Region** attribute specifies the AWS region in which to find the instances. Only *one* region may be specified per *instance description*.  If the record set must include IPs of instances from different regions, then *multiple* instance descriptions must be used.
+The **Region** attribute specifies the AWS region in which to find the
+instances. Only *one* region may be specified per *instance
+description*. If the record set must include IPs of instances from
+different regions, then *multiple* instance descriptions must be used.
 
-The **Filters** attribute is an array of descriptions of which EC2 instances will be included in the new value of the route53 record set.  The filters will be used directly in an `ec2.describeInstances` operation without modification.  See the [describeInstances API
+The **Filters** describe which EC2 instances will be included in the
+new value of the route53 record set.  The filters will be used
+directly in an `ec2.describeInstances` operation without modification.
+See the [describeInstances API
 documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeInstances-property)
-for information and examples of possible filters.  
+for information and examples of possible filters.
 
 ### Example *resources.json*
 
@@ -138,7 +156,6 @@ A complete mock example of a *resource.json* is
             ],
             "ResourceRecordSet": {
                 "Name": "bar.example.com",
-                "Type": "A",
                 "TTL": 30
             }
         }
@@ -170,8 +187,6 @@ A complete mock example of a *resource.json* is
         ],
         "ResourceRecordSet": {
             "Name": "foo.example.com",
-            "Type": "A",
-            "TTL": 30
         }
     }
 }
@@ -185,24 +200,26 @@ a fake example HostedZone.
 
 ## IAM policies
 
-Whether the resource record set update is performed at the command
-line or by a lambda process, we require appropriate IAM permissions to
-describe the EC2 instances and update the record sets.  
+When updating record sets either in CLI mode, or in AWS Lambda, AWS
+requires appropriate IAM permissions to both describe the EC2
+instances, and modify the record sets.
 
-The script `./bin/create-policy.js` can create the necessary policy.
-It requires at least a local copy of the `resource.json` file, where
-it will prefer to read the HostedZone attribute.  Or, if a local copy
-is not available, an `s3location.json` file to describe where to fetch
-the `resource.json`. 
+The script `./bin/create-policy.js` can be used to create the
+necessary policy.  It requires at least a local copy of the
+`resource.json` file, where it will prefer to read the HostedZone
+attribute.  Or, if a local copy is not available, an `s3location.json`
+file to describe where to fetch the `resource.json` (more information
+below).
 
-Alternatively, it can create a policy which may be attached to roles
-or users by including the `--createPolicy` option:
+Alternatively, `./bin/create-policy.js` can create a policy which may
+be *attached* to roles or users by including the `--createPolicy`
+option:
 
 ```
 $ node bin/create-policy.js --resource resource.json --createPolicy route53-controller
 ```
 
-`./bin/create-policy.js` may also attach the policy inline to an
+`./bin/create-policy.js` may also attach the policy inline for an
 existing user or role by providing the `--userPolicy` or
 `--rolePolicy` respectively.
 
@@ -216,42 +233,46 @@ access to that s3 location.
 $ node bin/create-policy.js --resource resource.json --s3location s3location.json
 ```
 
+## Uploading the AWS Lambda function
 
-## Creating a lambda deployment
+`route53-controller` provides a convenience script to upload the
+Lambda function directly.  By default, *route53-contoller* will name
+the Lambda function as `route53-controller`.  You may provide a
+different name by providing the `--name` argument.
 
-`route53-controller` will create an AWS Lambda deployment file
-including a provided `resource.json` ready to be deployed to AWS
-lambda.  Follow, for example, the [AWS Lambda
-walkthrough](http://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-prepare.html).
-Create a lambda execution role with the required `route53-controller`
-IAM policy, and upload the zip file created by `./bin/lambda-package.js`.
-
-```
-$ node bin/lambda-package.js --resource resource.json
-```
-
-After uploading the lambda function, you could invoke it either with the AWS console, or via the CLI:
-```
-$ aws lambda invoke --region us-west-2 --function-name route53-controller  --invocation-type RequestResponse --log-type Tail  --payload '{}' lambda-output.txt
-```
-Make sure to invoke the function with the `region`and `function-name`
-you chose.  `route53-controller` does not currently read the payload.
-
-## Uploading lambda code directly
-
-`route53-controller` provides a convenience script to upload the lambda file directly.
+`upload-lambda` will first attempt to update an existing deployment.
+If the Lambda function does not already exist, `upload-lambda` will
+attempt to create one.  *route53-controller* requires the ARN of an
+existing IAM Role to create the Lambda function (the
+`create-policy.js` script may be used to create the IAM role).
 
 ```
 $ node bin/upload-lambda.js --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
 ```
 
-`upload-lambda` will first attempt to update the deployment package of
-an existing Lambda function named `route53-controller`.  If the Lambda
-function does not already exist, `upload-lambda` will attempt to
-create one.  An ARN for an existing IAM Role must be provided to
-create a new Lambda function.
+## Creating a Lambda deployment
+
+If you prefer to upload function manually *route53-controller* can be
+used to create the AWS Lambda deployment package.  Follow, for
+example, the [AWS Lambda
+walkthrough](http://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-prepare.html).
+Create a lambda execution role with the required `route53-controller`
+IAM policy, and upload the zip file created by
+`./bin/lambda-package.js`.
+
+```
+$ node bin/lambda-package.js --resource resource.json
+```
 
 
+## Invoking the Lambda function
+
+After uploading the lambda function, you may invoke it either with the AWS console, or via with the AWS CLI:
+```
+$ aws lambda invoke --region us-west-2 --function-name route53-controller  --invocation-type RequestResponse --log-type Tail  --payload '{}' lambda-output.txt
+```
+Make sure to invoke the function with the `region`and `function-name`
+you chose.  `route53-controller` does not currently read the payload.
 
 ## Trigger Lambda function when autoscaling group changes
 
@@ -267,8 +288,10 @@ to trigger the lambda function the SNS event.
 
 ## Storing `resource.json` in S3
 
-If `resource.json` must be updated frequently, it may be more
-convenient to fetch `resource.json` from a static location in S3,
+Normally, the `resource.json` will be uploaded as part of the Lambda
+function deployment package.  However, if `resource.json` must be
+updated frequently, it may be more convenient (and require 
+fewer permissions) to store `resource.json` at an S3 location,
 where it can be updated without requiring redeployment of the Lambda
 function.  
 
