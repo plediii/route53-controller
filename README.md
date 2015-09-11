@@ -39,8 +39,8 @@ The root structure of the *resource.json* is
 
 #### **HostedZone**
 
-The *HostedZone* is ID of a pre-existing route53 Hosted Zone.  There
-may be only *HostedZone* one per *resource.json*.  If multiple
+The *HostedZone* is the ID of a pre-existing route53 Hosted Zone.
+There may be only *HostedZone* one per *resource.json*.  If multiple
 *HostedZone*s must be controlled, you will need to create additional
 *route53-controller* resource descriptions, and AWS Lambda functions.
 
@@ -65,7 +65,7 @@ instances/record set pairs.  The format of the *Resources* is
 }
 ```
 
-The **ResourceID** of the instances/record set pair is used to *name*
+The **ResourceID** of the *instances*/*record set* pair is used to *name*
 the pair for convenience, but has no effect on the logical operation
 of the record set update.  Any valid JSON attribute name is acceptable.
 
@@ -91,7 +91,7 @@ The *ResourceRecordSet* object will used as the `ResourceRecordSet`
 parameter in a call to the AWS SDK
 **route53.changeResourceRecordSets** function, except:
 
-* *ResourceRecords* (the list of instance IPs) will be the list of IPs
+* *ResourceRecords* will be set to to the list of instance IPs
 * The required *Type* will default to "A"
 
  See the [changeResourceRecordSets API
@@ -100,7 +100,7 @@ for more information about attributes.
 
 ##### Instances
 
-The *Instances* attribute is an array of descipriptions of EC2
+The *Instances* attribute is an array of descriptions of EC2
 instance IPs to be associated with the *ResourceRecordSet*.  The
 format is
 ```javascript
@@ -198,41 +198,6 @@ a fake example HostedZone.
 * All instances tagged with the `Name` of `bar.example` in the `us-west-1` region are included as IPs in the record set `bar.example.com`.  
 * All instances tagged with the `Name` of `foo.example` in the `us-west-2` and `us-east-1` regions are included as IPs in the record set `foo.example.com`.
 
-## IAM policies
-
-When updating record sets either in CLI mode, or in AWS Lambda, AWS
-requires appropriate IAM permissions to both describe the EC2
-instances, and modify the record sets.
-
-The script `./bin/create-policy.js` can be used to create the
-necessary policy.  It requires at least a local copy of the
-`resource.json` file, where it will prefer to read the HostedZone
-attribute.  Or, if a local copy is not available, an `s3location.json`
-file to describe where to fetch the `resource.json` (more information
-below).
-
-Alternatively, `./bin/create-policy.js` can create a policy which may
-be *attached* to roles or users by including the `--createPolicy`
-option:
-
-```
-$ node bin/create-policy.js --resource resource.json --createPolicy route53-controller
-```
-
-`./bin/create-policy.js` may also attach the policy inline for an
-existing user or role by providing the `--userPolicy` or
-`--rolePolicy` respectively.
-
-```
-$ node bin/create-policy.js --resource resource.json --rolePolicy lambda_role
-```
-
-If an `s3location.json` file is provided, the policy will include read
-access to that s3 location.
-```
-$ node bin/create-policy.js --resource resource.json --s3location s3location.json
-```
-
 ## Uploading the AWS Lambda function
 
 `route53-controller` provides a convenience script to upload the
@@ -244,7 +209,8 @@ different name by providing the `--name` argument.
 If the Lambda function does not already exist, `upload-lambda` will
 attempt to create one.  *route53-controller* requires the ARN of an
 existing IAM Role to create the Lambda function (the
-`create-policy.js` script may be used to create the IAM role).
+`create-policy.js` script described below may be used to create the
+IAM role).
 
 ```
 $ node bin/upload-lambda.js --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
@@ -285,6 +251,41 @@ Then see the Amazon Simple Notification Service Developer Guide
 ["Invoking Lambda functions using Amazon SNS
 notifications"](http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html)
 to trigger the lambda function the SNS event.
+
+
+## IAM policies
+
+When updating record sets either in CLI mode, or in AWS Lambda, AWS
+requires appropriate IAM permissions to both describe the EC2
+instances, and modify the record sets.
+
+The script `./bin/create-policy.js` can be used to create the
+necessary policy.  `create-policy.js` requires either a local copy of
+the `resource.json` file or an `s3location.json` file describing where
+to fetch the `resource.json` (more information below).
+
+Alternatively, `./bin/create-policy.js` can create a policy which may
+be *attached* to roles or users by including the `--createPolicy`
+option:
+
+```
+$ node bin/create-policy.js --resource resource.json --createPolicy route53-controller
+```
+
+`./bin/create-policy.js` may also attach the policy inline for an
+existing user or role by providing the `--userPolicy` or
+`--rolePolicy` respectively.
+
+```
+$ node bin/create-policy.js --resource resource.json --rolePolicy lambda_role
+```
+
+If an `s3location.json` file is provided, the policy will include read
+access to that s3 location.
+```
+$ node bin/create-policy.js --resource resource.json --s3location s3location.json
+```
+
 
 ## Storing `resource.json` in S3
 
