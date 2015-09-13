@@ -300,33 +300,84 @@ test('updateRecordSets', function (t) {
         });
     });
 
-    t.test('instancePublicIP', function (s) {
-        s.test('returns PublicIPAddress', function (r) {
-            r.plan(1);
-            r.equal('127.1.1.1', m.instancePublicIp({
+    t.test('instanceIps', function (s) {
+        s.test('returns PublicIPAddress by default', function (r) {
+            r.plan(2);
+            var ips = m.instanceIps([{
                 PublicIpAddress: '127.1.1.1'
-            }), 'Should return public Ip address');
+            }]);
+            r.equal(1, ips.length, 'number of IPs returned');
+            r.equal('127.1.1.1', ips[0], 'Should return public Ip');
         });
 
-        s.test('returns falsy if PublicIPAddress is not present', function (r) {
-            r.plan(1);
-            r.notOk(m.instancePublicIp({
-            }), 'Should return falsy when PrivateIp is not present');
+        s.test('returns PublicIPAddress of each instance', function (r) {
+            r.plan(3);
+            var ips = m.instanceIps([
+                {
+                    PublicIpAddress: '127.1.1.1'
+                    , PrivateIpAddress: '192.1.1.1'
+                }
+                , {
+                    PublicIpAddress: '127.1.1.2'
+                    , PrivateIpAddress: '192.1.1.2'
+                }]);
+            r.equal(2, ips.length, 'number of IPs returned');
+            r.ok(ips.indexOf('127.1.1.1') >= 0, 'should have the first public address');
+            r.ok(ips.indexOf('127.1.1.2') >= 0, 'should have the second public address');
         });
-    });
 
-    t.test('instancePrivateIP', function (s) {
-        s.test('returns PrivateIpAddress', function (r) {
-            r.plan(1);
-            r.equal('127.1.1.1', m.instancePrivateIp({
-                PrivateIpAddress: '127.1.1.1'
-            }), 'Should return private Ip');
+        s.test('skips instances without PublicIPAddress', function (r) {
+            r.plan(2);
+            var ips = m.instanceIps([
+                {
+                    PrivateIpAddress: '127.1.1.1'
+                }
+                , {
+                    PublicIpAddress: '127.1.1.2'
+                    , PrivateIpAddress: '192.1.1.2'
+                }]);
+            r.equal(1, ips.length, 'number of IPs returned');
+            r.ok(ips.indexOf('127.1.1.2') >= 0, 'should have the one public address');
         });
 
-        s.test('returns falsy if PrivateIpAddress is not present', function (r) {
-            r.plan(1);
-            r.notOk(m.instancePrivateIp({
-            }), 'Should return falsy when PrivateIp is not present');
+        s.test('returns PrivateIPAddress if given in second argument', function (r) {
+            r.plan(2);
+            var ips = m.instanceIps([{
+                PublicIpAddress: '127.1.1.1'
+                , PrivateIpAddress: '192.1.1.1'
+            }], true);
+            r.equal(1, ips.length, 'number of IPs returned');
+            r.equal('192.1.1.1', ips[0], 'Should return private Ip');
+        });
+
+        s.test('returns PrivateIPAddress of each instance', function (r) {
+            r.plan(3);
+            var ips = m.instanceIps([
+                {
+                    PublicIpAddress: '127.1.1.1'
+                    , PrivateIpAddress: '192.1.1.1'
+                }
+                , {
+                    PublicIpAddress: '127.1.1.2'
+                    , PrivateIpAddress: '192.1.1.2'
+                }], true);
+            r.equal(2, ips.length, 'number of IPs returned');
+            r.ok(ips.indexOf('192.1.1.1') >= 0, 'should have second present address');
+            r.ok(ips.indexOf('192.1.1.2') >= 0, 'should have second present  address');
+        });
+
+        s.test('skips instances without PrivateIPAddress', function (r) {
+            r.plan(2);
+            var ips = m.instanceIps([
+                {
+                    PublicIpAddress: '127.1.1.1'
+                }
+                , {
+                    PublicIpAddress: '127.1.1.2'
+                    , PrivateIpAddress: '192.1.1.2'
+                }], true);
+            r.equal(1, ips.length, 'number of IPs returned');
+            r.ok(ips.indexOf('192.1.1.2') >= 0, 'should have the one present address');
         });
     });
 });
