@@ -380,4 +380,99 @@ test('updateRecordSets', function (t) {
             r.ok(ips.indexOf('192.1.1.2') >= 0, 'should have the one present address');
         });
     });
+
+    t.test('resourceChange', function (s) {
+        s.test('Calls EC2 describeInstances', function (r) {
+            r.plan(1);
+            m.resourceChange({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            r.pass('Called describe instances');
+                        }
+                    };
+                }
+            }, 'resourceName', {
+                Instances: [
+                    {}
+                ]
+            });
+        });
+
+        s.test('Calls EC2 describeInstances', function (r) {
+            r.plan(1);
+            m.resourceChange({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            r.pass('Called describe instances');
+                        }
+                    };
+                }
+            }, 'resourceName', {
+                Instances: [
+                    {}
+                ]
+            });
+        });
+
+        s.test('Returns a change template with publicIPs by default', function (r) {
+            r.plan(3);
+            m.resourceChange({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            cb(null, {
+                                Reservations: [{
+                                    Instances: [{
+                                        PublicIpAddress: '192.1.1.1'
+                                    }]
+                                }]
+                            });
+                        }
+                    };
+                }
+            }, 'resourceName', {
+                Instances: [
+                    {}
+                ]
+            })
+            .then(function (change) {
+                r.ok(change, 'Returned change');
+                r.equal(change.Action, 'UPSERT');
+                r.equal('192.1.1.1', change.ResourceRecordSet.ResourceRecords[0].Value);
+	    });
+        });
+
+        s.test('Returns a change template with privateIps when requested', function (r) {
+            r.plan(3);
+            m.resourceChange({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            cb(null, {
+                                Reservations: [{
+                                    Instances: [{
+                                        PublicIpAddress: '192.1.1.1'
+                                        , PrivateIpAddress: '127.1.1.1'
+                                    }]
+                                }]
+                            });
+                        }
+                    };
+                }
+            }, 'resourceName', {
+                PrivateIP: true
+                , Instances: [
+                    {
+                    }
+                ]
+            })
+            .then(function (change) {
+                r.ok(change, 'Returned change');
+                r.equal(change.Action, 'UPSERT');
+                r.equal('127.1.1.1', change.ResourceRecordSet.ResourceRecords[0].Value);
+	    });
+        });
+    });
 });
