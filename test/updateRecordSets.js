@@ -475,4 +475,132 @@ test('updateRecordSets', function (t) {
 	    });
         });
     });
+
+    t.test('updateResources', function (s) {
+        s.test('Calls EC2 describeInstances', function (r) {
+            r.plan(1);
+            m.updateResources({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            r.pass('Called describe instances');
+                        }
+                    };
+                }
+            }, {
+                HostedZone: "Z148QEXAMPLE8V"
+                , Resources: {
+                    test:{
+                        Instances: [{}]
+                        , ResourceRecordSet: { Name: 'resource' }
+                    }
+                }
+            });
+        });
+
+        s.test('Rejects on  EC2 describeInstances error', function (r) {
+            r.plan(1);
+            m.updateResources({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            cb('error');
+                        }
+                    };
+                }
+            }, {
+                HostedZone: "Z148QEXAMPLE8V"
+                , Resources: {
+                    test:{
+                        Instances: [{}]
+                        , ResourceRecordSet: { Name: 'resource' }
+                    }
+                }
+            })
+            .catch(function (err) {
+                r.pass('Rejected on describeInstances error');
+            });
+        });
+
+        s.test('Calls Route53.changeResourceRecordSets', function (r) {
+            r.plan(6);
+            m.updateResources({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            cb(null, {
+                                Reservations: [{
+                                    Instances: [{
+                                        PublicIpAddress: '192.1.1.1'
+                                        , PrivateIpAddress: '127.1.1.1'
+                                    }]
+                                }]
+                            });
+                        }
+                    };
+                }
+                , Route53: function () {
+                    return {
+                        changeResourceRecordSets: function (params, cb) {
+                            r.pass('Called changeResourceRecordSets');
+                            r.equal("Z148QEXAMPLE8V", params.HostedZoneId);
+                            r.equal(1, params.ChangeBatch.Changes.length);
+                            r.equal(1, params.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords.length);
+                            r.equal("192.1.1.1", params.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords[0].Value);
+                            return cb();
+                        }
+                    };
+                }
+            }, {
+                HostedZone: "Z148QEXAMPLE8V"
+                , Resources: {
+                    test:{
+                        Instances: [{}]
+                        , ResourceRecordSet: { Name: 'resource' }
+                    }
+                }
+            })
+            .then(function () {
+                r.pass('Completed successfully.');
+            });
+        });
+
+        s.test('Rejects on  Route53.changeResourceRecordSets error', function (r) {
+            r.plan(1);
+            m.updateResources({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            cb(null, {
+                                Reservations: [{
+                                    Instances: [{
+                                        PublicIpAddress: '192.1.1.1'
+                                        , PrivateIpAddress: '127.1.1.1'
+                                    }]
+                                }]
+                            });
+                        }
+                    };
+                }
+                , Route53: function () {
+                    return {
+                        changeResourceRecordSets: function (params, cb) {
+                            cb('Error');
+                        }
+                    };
+                }
+            }, {
+                HostedZone: "Z148QEXAMPLE8V"
+                , Resources: {
+                    test:{
+                        Instances: [{}]
+                        , ResourceRecordSet: { Name: 'resource' }
+                    }
+                }
+            })
+            .catch(function (err) {
+                r.pass('OK rejected on changeResourceRecordSets error');
+            });
+        });
+    });
 });
