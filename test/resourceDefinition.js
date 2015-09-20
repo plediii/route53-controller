@@ -18,6 +18,14 @@ test('resourceDefinition', function (t) {
             });
         });
 
+        s.test('Rejects on invalid json', function (r) {
+            r.plan(1);
+            m.parse("undefined")
+            .catch(function (err) {
+                r.ok(err.message.match(/JSON/), 'Reject references JSON');
+            });
+        });
+
         s.test('Requires presence of HostedZone', function (r) {
             r.plan(1);
             m.parse(JSON.stringify({
