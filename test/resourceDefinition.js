@@ -3,6 +3,7 @@
 var test = require('tape');
 var m = require('../lib/resourceDefinition');
 var _ = require('lodash');
+var pathlib = require('path');
 
 test('resourceDefinition', function (t) {
     t.test('parse', function (s) {
@@ -209,6 +210,16 @@ test('resourceDefinition', function (t) {
                     r.ok(err.message.match(/Name/), 'Names missing attribute attribute');
                     r.ok(err.message.match(/launch/), 'Names problematic resource');
                 });
+        });
+    });
+
+    t.test('read', function (s) {
+        s.test('Reads resource.json', function (r) {
+            r.plan(1);
+            m.read(pathlib.join(__dirname, '/data/resource.json'))
+            .then(function (resource) {
+                r.equal(resource.HostedZone, "Z148QEXAMPLE8V");
+            });
         });
     });
 });
