@@ -71,13 +71,14 @@ test('s3location', function (t) {
         });
     });
 
-    // t.test('read', function (s) {
-    //     s.test('Reads s3location.json', function (r) {
-    //         r.plan(1);
-    //         m.read(pathlib.join(__dirname, '/data/s3location.json'))
-    //         .then(function (location) {
-    //             r.equal(location.Bucket, "Bucket");
-    //         });
-    //     });
-    // });
+    t.test('read', function (s) {
+        s.test('Reads s3location.json', function (r) {
+            r.plan(2);
+            m.read(pathlib.join(__dirname, '/data/s3location.json'))
+            .then(function (location) {
+                r.equal(location.Bucket, "foo");
+                r.equal(location.Key, "bar");
+            });
+        });
+    });
 });
