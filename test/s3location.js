@@ -81,4 +81,63 @@ test('s3location', function (t) {
             });
         });
     });
+
+    t.test('download', function (s) {
+        s.test('Downloads resource from s3', function (r) {
+            r.plan(2);
+            m.download({
+                S3: function () {
+                    return {
+                        getObject: function (location) {
+                            r.equal(location.Bucket, 'foo');
+                            r.equal(location.Key, 'bar');
+                        }
+                    };
+                }
+            }, {
+                Bucket: 'foo'
+                , Key: 'bar'
+            });
+        });
+
+        s.test('Resolves to downloaded s3 data', function (r) {
+            r.plan(1);
+            m.download({
+                S3: function () {
+                    return {
+                        getObject: function (location, cb) {
+                            return cb(null, {
+                                Body: 'data'
+                            });
+                        }
+                    };
+                }
+            }, {
+                Bucket: 'foo'
+                , Key: 'bar'
+            })
+            .then(function (data) {
+                r.equal(data, 'data');
+            });
+        });
+
+        s.test('Rejects on download error', function (r) {
+            r.plan(1);
+            m.download({
+                S3: function () {
+                    return {
+                        getObject: function (location, cb) {
+                            return cb('err');
+                        }
+                    };
+                }
+            }, {
+                Bucket: 'foo'
+                , Key: 'bar'
+            })
+            .catch(function (err) {
+                r.equal(err, 'err');
+            });
+        });
+    });
 });
