@@ -1,8 +1,8 @@
 "use strict";
 
 var test = require('tape');
-var route53PolicyStatements = require('../lib/route53PolicyStatements');
-var s3PolicyStatements = require('../lib/s3PolicyStatements');
+var route53PolicyStatements = require('../../lib/route53PolicyStatements');
+var s3PolicyStatements = require('../../lib/s3PolicyStatements');
 
 test('route53 statements', function (t) {
     t.test('HostedZone', function (s) {

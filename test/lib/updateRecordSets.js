@@ -1,7 +1,7 @@
 "use strict";
 
 var test = require('tape');
-var m = require('../lib/updateRecordSets');
+var m = require('../../lib/updateRecordSets');
 var _ = require('lodash');
 var AWS = require('aws-sdk');
 

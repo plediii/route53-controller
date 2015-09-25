@@ -1,7 +1,7 @@
 "use strict";
 
 var test = require('tape');
-var m = require('../lib/s3location');
+var m = require('../../lib/s3location');
 var _ = require('lodash');
 var pathlib = require('path');
 

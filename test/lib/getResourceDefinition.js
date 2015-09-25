@@ -1,7 +1,7 @@
 "use strict";
 
 var test = require('tape');
-var m = require('../lib/getResourceDefinition');
+var m = require('../../lib/getResourceDefinition');
 var _ = require('lodash');
 var pathlib = require('path');
 
