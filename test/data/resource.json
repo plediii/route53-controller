@@ -4,7 +4,6 @@
         "bar.example": {
             "Instances": [
                 {
-                    "Region": "us-west-1",
                     "PrivateIP": true,
                     "Filters": [
                         {

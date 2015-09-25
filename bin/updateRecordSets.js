@@ -4,23 +4,44 @@
 /* global -Promise */
 "use strict";
 
+var Promise = require('bluebird');
 var minimist = require('minimist');
 var updateRecordSets = require('../lib/updateRecordSets');
+var getResourceDefinition = require('../lib/getResourceDefinition');
 
-var argv = require('minimist')(process.argv.slice(2));
-if (!(argv.hasOwnProperty('resource') || argv.hasOwnProperty('s3location'))) {
-    console.error('Usage: ' + process.argv.slice(0, 2).join(' ') + ' [--resource resource.json] [--s3location location.json]');
-    console.error(' Provide the resource definitions either in a local file (via --resource), or at an s3 location  (--s3location)');
-    process.exit(1);
-}
+var run = module.exports = function (AWS, args) {
+    var argv = require('minimist')(args);
+    if (!(argv.hasOwnProperty('resource') || argv.hasOwnProperty('s3location'))) {
+        console.error([
+            '',
+            'Usage: updateRecordSets [--resource resource.json] [--s3location location.json]',
+            '',
+            '  You must provide the resource definitions either in a local file (via --resource), ',
+            '  or at an s3 location  (--s3location)',
+            ''
+        ].join('\n'));
+        return Promise.reject(new Error('Invalid argument'));
+    }
 
-updateRecordSets({
-    s3Location: argv.s3location
-    , resource: argv.resource
-})
-    .then(function (data) {
-        console.log('Done.', data);
+    return getResourceDefinition(AWS, {
+        s3location: argv.s3location
+        , resource: argv.resource
     })
-    .catch(function (err) {
-        console.error('Error: ', err, err.stack);
-    });
+        .then(function (resource) {
+            return updateRecordSets(AWS, resource);
+        })
+        .then(function (data) {
+            console.log('Done.', data);
+        })
+        .catch(function (err) {
+            console.error('Error: ', err, err.stack);
+            throw err;
+        });
+};
+
+if (!module.parent) {
+    run(require('../lib/aws'), process.argv.slice(2))
+        .catch(function (err) {
+            process.exit(1);
+        });
+}
