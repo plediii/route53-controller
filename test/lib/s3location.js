@@ -5,6 +5,8 @@ var m = require('../../lib/s3location');
 var _ = require('lodash');
 var pathlib = require('path');
 
+var testS3LocationFile = pathlib.join(__dirname, '/../data/s3location.json');
+
 test('s3location', function (t) {
     t.test('parse', function (s) {
         s.test('Parses valid s3location.json', function (r) {
@@ -74,7 +76,7 @@ test('s3location', function (t) {
     t.test('read', function (s) {
         s.test('Reads s3location.json', function (r) {
             r.plan(2);
-            m.read(pathlib.join(__dirname, '/data/s3location.json'))
+            m.read(testS3LocationFile)
             .then(function (location) {
                 r.equal(location.Bucket, "foo");
                 r.equal(location.Key, "bar");

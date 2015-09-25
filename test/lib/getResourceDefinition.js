@@ -5,11 +5,14 @@ var m = require('../../lib/getResourceDefinition');
 var _ = require('lodash');
 var pathlib = require('path');
 
+var testResourceFile = pathlib.join(__dirname, '/../data/resource.json');
+var testS3LocationFile = pathlib.join(__dirname, '/../data/s3location.json');
+
 test('getResourceDefinition', function (t) {
     t.test('Should read resource definition', function (s) {
         s.plan(1);
         m({}, {
-            resource: pathlib.join(__dirname, '/data/resource.json')
+            resource: testResourceFile
         })
         .then(function (resource) {
             s.equal(resource.HostedZone, "Z148QEXAMPLE8V");
@@ -33,7 +36,7 @@ test('getResourceDefinition', function (t) {
                 };
             }
         }, {
-            s3location: pathlib.join(__dirname, '/data/s3location.json')
+            s3location: testS3LocationFile
         })
         .then(function (resource) {
             s.equal(resource.HostedZone, "Z148QEXAMPLE8V");
@@ -57,8 +60,8 @@ test('getResourceDefinition', function (t) {
                 };
             }
         }, {
-            s3location: pathlib.join(__dirname, '/data/s3location.json')
-            , resource: pathlib.join(__dirname, '/data/resource.json')
+            s3location: testS3LocationFile
+            , resource: testResourceFile
         })
         .then(function (resource) {
             s.equal(resource.HostedZone, "s3");

@@ -5,6 +5,9 @@ var m = require('../../lib/resourceDefinition');
 var _ = require('lodash');
 var pathlib = require('path');
 
+
+var testResourceFile = pathlib.join(__dirname, '/../data/resource.json');
+
 test('resourceDefinition', function (t) {
     t.test('parse', function (s) {
         s.test('Parses valid resource.json', function (r) {
@@ -216,7 +219,7 @@ test('resourceDefinition', function (t) {
     t.test('read', function (s) {
         s.test('Reads resource.json', function (r) {
             r.plan(1);
-            m.read(pathlib.join(__dirname, '/data/resource.json'))
+            m.read(testResourceFile)
             .then(function (resource) {
                 r.equal(resource.HostedZone, "Z148QEXAMPLE8V");
             });
