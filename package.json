@@ -4,7 +4,7 @@
   "description": "Update route53 records based on describeInstances filters.",
   "main": "index.js",
   "scripts": {
-    "lint": "jshint *.js lib/*.js bin/*.js test/*.js",
+    "lint": "jshint *.js lib/*.js bin/*.js test/*.js test/*/*.js",
       "coverage": "istanbul cover test/all.js",
     "test": "node test/all.js"
   },
