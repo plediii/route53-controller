@@ -32,7 +32,7 @@ test('updateRecordSets', function (t) {
     });
 
     t.test('Reads local resources and updates record sets when given local resource definition', function (s) {
-        s.plan(2);
+        s.plan(3);
         m({
             EC2: function () {
                 return {
@@ -53,9 +53,29 @@ test('updateRecordSets', function (t) {
                 return {
                     changeResourceRecordSets: function (params, cb) {
                         s.pass('updated resource records');
+                        return cb();
                     }
                 };
             }
-        }, ['--resource', testResourceFile]);
+        }, ['--resource', testResourceFile])
+        .then(function () {
+            s.pass('Resolved successfully.');
+        });
+    });
+
+    t.test('Rejects on API errors.', function (s) {
+        s.plan(1);
+        m({
+            EC2: function () {
+                return {
+                    describeInstances: function (params, cb) {
+                        return cb('error');
+                    }
+                };
+            }
+        }, ['--resource', testResourceFile])
+        .catch(function (err) {
+            s.pass('Rejected on api error');
+        });
     });
 });
