@@ -18,8 +18,7 @@ var run = module.exports = function (AWS, args) {
     var iam = new AWS.IAM();
 
     var argv = require('minimist')(process.argv.slice(2));
-    if (_.keys(argv).length < 2 
-        || (!argv.hasOwnProperty('s3location') && !argv.hasOwnProperty('resource')))  {
+    if (!argv.hasOwnProperty('s3location') && !argv.hasOwnProperty('resource'))  {
         console.log('Create a policy for route53 controller.');
         console.log('Usage: ' + process.argv.slice(0, 2).join(' ') + ' [options]');
         console.log('');
