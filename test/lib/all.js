@@ -5,3 +5,4 @@ require('./resourceDefinition');
 require('./updateRecordSets');
 require('./s3location');
 require('./getResourceDefinition');
+require('./createPolicy');
