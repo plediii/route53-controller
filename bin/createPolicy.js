@@ -19,16 +19,21 @@ var run = module.exports = function (AWS, args) {
 
     var argv = require('minimist')(process.argv.slice(2));
     if (!argv.hasOwnProperty('s3location') && !argv.hasOwnProperty('resource'))  {
-        console.log('Create a policy for route53 controller.');
-        console.log('Usage: ' + process.argv.slice(0, 2).join(' ') + ' [options]');
-        console.log('');
-        console.log('Options: ');
-        console.log(' --s3location s3location.json        Add policy permissions to access the resources at a specific s3 location.');
-        console.log(' --resource resource.json            If s3location is not provided, resource.json is required for the HostedZoneId.');
-        console.log(' --createPolicy policyName           Create an IAM policy with the given name.');
-        console.log(' --userPolicy userName               Attach the policy inline to the given IAM user.');
-        console.log(' --rolePolicy roleName               Attach the policy inline to the given IAM role.');
-        console.log('');
+        console.error([
+            '',
+            'Create a policy for route53 controller.  You must provide either --resource or --s3location',
+            '',
+            'Usage: createPolicy [options]',
+            '',
+            '',
+            'Options: ',
+            ' --s3location s3location.json        Add policy permissions to access the resources at a specific s3 location.',
+            ' --resource resource.json            If s3location is not provided, resource.json is required for the HostedZoneId.',
+            ' --createPolicy policyName           Create an IAM policy with the given name.',
+            ' --userPolicy userName               Attach the policy inline to the given IAM user.',
+            ' --rolePolicy roleName               Attach the policy inline to the given IAM role.',
+            ''
+        ].join('\n'));
         return Promise.reject();
     }
 
