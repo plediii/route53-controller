@@ -79,7 +79,7 @@ test('createPolicy.policyBody', function (t) {
             r.plan(1);
             m.policyBody({}, {})
                 .catch(function (err) {
-                    r.ok(err.message.match('/resource/'), 'Reject references expected parameter');
+                    r.ok(err.message.match(/resource/), 'Reject references resource parameter');
                 });
         });
 
@@ -89,8 +89,8 @@ test('createPolicy.policyBody', function (t) {
                 resource: testResource
             })
                 .then(function (data) {
-                    r.ok(_.some(data.policy.Statement, isChangeResourceRecordSetsStatement));
-                    r.ok(_.some(data.policy.Statement, isDescribeInstancesStatement));
+                    r.ok(_.some(data.Statement, isChangeResourceRecordSetsStatement), "Some statement should authorize changeResourceRecord");
+                    r.ok(_.some(data.Statement, isDescribeInstancesStatement), "Some statement should authorize describing instances ");
                 });
         });
     });
@@ -104,7 +104,7 @@ test('createPolicy.policyBody', function (t) {
                 s3location: testS3Location
             })
                 .then(function (data) {
-                    r.ok(_.some(data.policy.Statement, function (statement) {
+                    r.ok(_.some(data.Statement, function (statement) {
                         return statementHasAction(statement, "s3:Get*")
                             && statementHasResource(statement, "arn:aws:s3:::foo/bar");
                     }));
@@ -132,8 +132,8 @@ test('createPolicy.policyBody', function (t) {
                 s3location: testS3Location
             })
                 .then(function (data) {
-                    r.ok(_.some(data.policy.Statement, isChangeResourceRecordSetsStatement));
-                    r.ok(_.some(data.policy.Statement, isDescribeInstancesStatement));
+                    r.ok(_.some(data.Statement, isChangeResourceRecordSetsStatement), "Some statement should authorize changeResourceRecord");
+                    r.ok(_.some(data.Statement, isDescribeInstancesStatement), "Some statement should authorize describing instances ");
                 });
         });
 
@@ -171,9 +171,9 @@ test('createPolicy', function (t) {
             IAM: function () {
                 return {
                     createPolicy: function (params, cb) {
-                        s.equal(params.PolicyName, 'test-name');
+                        s.equal(params.PolicyName, 'test-name', "the policy name should be the provided argument");
                         s.deepEqual(m.policyBody({}, { resource: testResource })
-                                    , JSON.parse(params.PolicyDocument));
+                                    , JSON.parse(params.PolicyDocument), "the policy document should be the exepcted body");
                     }
                 };
             }
