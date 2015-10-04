@@ -39,7 +39,7 @@ var mockS3 = function (params) {
     return function () {
         return {
             getObject: function (location, cb) {
-                if (params.onGetObject) {
+                if (params && params.onGetObject) {
                     params.onGetObject(location, cb);
                 }
                 return cb(null, {
@@ -107,7 +107,7 @@ test('createPolicy.policyBody', function (t) {
                     r.ok(_.some(data.Statement, function (statement) {
                         return statementHasAction(statement, "s3:Get*")
                             && statementHasResource(statement, "arn:aws:s3:::foo/bar");
-                    }));
+                    }), 'Some statement allows accessing s3location');
                 });
         });
 
