@@ -127,7 +127,7 @@ test('createPolicy.policyBody', function (t) {
         s.test('Creates policy for resource at s3location', function (r) {
             r.plan(2);
             m.policyBody({
-                S3: mockS3
+                S3: mockS3()
             }, {
                 s3location: testS3Location
             })
