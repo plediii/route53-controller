@@ -20,4 +20,16 @@ test('createPolicy', function (t) {
             s.pass('Resolve successfully');
         });
     });
+
+    t.test('Runs ', function (s) {
+        s.plan(1);
+        m({
+            IAM: function () {
+                return {};
+            }
+        }, [])
+        .catch(function () {
+            s.pass('Resolve successfully');
+        });
+    });
 });
