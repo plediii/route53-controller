@@ -161,7 +161,7 @@ test('createPolicy', function (t) {
         s.plan(1);
         m({}, 'test-name', {})
         .catch(function (err) {
-            s.ok(err.message.match('/resource/'), 'Reject references expected parameter');
+            s.ok(err.message.match(/resource/), 'Reject references expected parameter');
         });
     });
 
