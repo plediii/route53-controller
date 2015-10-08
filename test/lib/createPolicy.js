@@ -172,8 +172,11 @@ test('createPolicy', function (t) {
                 return {
                     createPolicy: function (params, cb) {
                         s.equal(params.PolicyName, 'test-name', "the policy name should be the provided argument");
-                        s.deepEqual(m.policyBody({}, { resource: testResource })
+                        m.policyBody({}, { resource: testResource })
+                            .then(function (body) {
+                                s.deepEqual(body
                                     , JSON.parse(params.PolicyDocument), "the policy document should be the exepcted body");
+                            });
                     }
                 };
             }
