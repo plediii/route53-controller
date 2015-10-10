@@ -211,8 +211,11 @@ test('createPolicy', function (t) {
                     putUserPolicy: function (params, cb) {
                         s.equal(params.PolicyName, 'test-name');
                         s.equal(params.UserName, 'test-user');
-                        s.deepEqual(m.policyBody({}, { resource: testResource })
-                                    , JSON.parse(params.PolicyDocument));
+                        m.policyBody({}, { resource: testResource })
+                            .then(function (body) {
+                                s.deepEqual(body
+                                            , JSON.parse(params.PolicyDocument));
+                            });
                     }
                 };
             }
@@ -249,8 +252,11 @@ test('createPolicy', function (t) {
                     putRolePolicy: function (params, cb) {
                         s.equal(params.PolicyName, 'test-name');
                         s.equal(params.RoleName, 'test-role');
-                        s.deepEqual(m.policyBody({}, { resource: testResource })
-                                    , JSON.parse(params.PolicyDocument));
+                        m.policyBody({}, { resource: testResource })
+                            .then(function (body) {
+                                s.deepEqual(body
+                                            , JSON.parse(params.PolicyDocument));
+                            });
                     }
                 };
             }
