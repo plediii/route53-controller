@@ -166,7 +166,7 @@ test('createPolicy', function (t) {
     });
 
     t.test('Uploads policy for resource', function (s) {
-        s.plan(2);
+        s.plan(3);
         m({
             IAM: function () {
                 return {
@@ -177,11 +177,15 @@ test('createPolicy', function (t) {
                                 s.deepEqual(body
                                     , JSON.parse(params.PolicyDocument), "the policy document should be the exepcted body");
                             });
+                        return cb();
                     }
                 };
             }
         }, 'test-name', {
             resource: testResource
+        })
+        .then(function () {
+            s.pass('resolved');
         });
     });
 
@@ -204,7 +208,7 @@ test('createPolicy', function (t) {
     });
 
     t.test('Creates userPolicy when given userPolicy param', function (s) {
-        s.plan(3);
+        s.plan(4);
         m({
             IAM: function () {
                 return {
@@ -216,12 +220,16 @@ test('createPolicy', function (t) {
                                 s.deepEqual(body
                                             , JSON.parse(params.PolicyDocument));
                             });
+                        return cb();
                     }
                 };
             }
         }, 'test-name', {
             resource: testResource
             , userName: 'test-user'
+        })
+        .then(function () {
+            s.pass('resolved');
         });
     });
 
@@ -245,7 +253,7 @@ test('createPolicy', function (t) {
     });
 
     t.test('Creates rolePolicy when given rolePolicy param', function (s) {
-        s.plan(3);
+        s.plan(4);
         m({
             IAM: function () {
                 return {
@@ -257,12 +265,16 @@ test('createPolicy', function (t) {
                                 s.deepEqual(body
                                             , JSON.parse(params.PolicyDocument));
                             });
+                        return cb();
                     }
                 };
             }
         }, 'test-name', {
             resource: testResource
             , roleName: 'test-role'
+        })
+        .then(function () {
+            s.pass('resolved');
         });
     });
 
