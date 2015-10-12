@@ -14,10 +14,10 @@ var s3location = require('../lib/s3location');
 var s3PolicyStatements = require('../lib/s3PolicyStatements');
 var getResourceDefinition = require('../lib/getResourceDefinition');
 
-var run = module.exports = function (AWS, args) {
+var run = module.exports = Promise.method(function (AWS, args) {
     var iam = new AWS.IAM();
 
-    var argv = require('minimist')(process.argv.slice(2));
+    var argv = require('minimist')(args);
     if (!argv.hasOwnProperty('s3location') && !argv.hasOwnProperty('resource'))  {
         console.error([
             '',
@@ -34,107 +34,10 @@ var run = module.exports = function (AWS, args) {
             ' --rolePolicy roleName               Attach the policy inline to the given IAM role.',
             ''
         ].join('\n'));
-        return Promise.reject();
+        throw new Error('Invalid arguments');
     }
-
-    var getResourceParams;
-    if (argv.hasOwnProperty('resource')) {
-        // prefer to read from local copy
-        getResourceParams = {
-            resource: argv.resource
-        };
-    } else {
-        getResourceParams = {
-            s3Location: argv.s3location
-        };
-    }
-
-    var getPolicyStatements = getResourceDefinition(getResourceParams)
-        .then(function (resource) {
-            return route53PolicyStatements(resource).concat(ec2PolicyStatements());
-        });
-
-    if (argv.hasOwnProperty('s3location')) {
-        getPolicyStatements = getPolicyStatements.then(function (statements) {
-            return s3location.read(argv.s3location)
-                .then(function (s3Location) {
-                    return statements.concat(s3PolicyStatements(s3Location));
-                });
-        });
-    }
-    var policyDescription = 'Policy for modifying route53 record sets created by route53-controller';
-
-    getPolicyStatements
-        .then(function (statements) {
-            return {
-                "Version": "2012-10-17",
-                "Statement": statements
-            };
-        })
-        .then(function (policy) {
-            var policyDocument = JSON.stringify(policy, null, 4);
-            console.log('Policy:');
-            console.log(policyDocument);
-            var policyName = 'route53-controller';
-            if (argv.hasOwnProperty('createPolicy')) {
-                policyName = argv.createPolicy;
-                return new Promise(function (resolve, reject) {
-                    return iam.createPolicy({
-                        PolicyDocument: policyDocument
-                        , PolicyName: policyName
-                        , Description: policyDescription
-                    }, function (err, data) {
-                        if (err) {
-                            return reject(err);
-                        } else {
-                            console.log('Created policy ', policyName);
-                            return data;
-                        }
-                    });
-                });
-            } else if (argv.hasOwnProperty('userPolicy')) {
-                var userName = argv.userPolicy;
-                policyName = 'route53-controller';
-                return new Promise(function (resolve, reject) {
-                    return iam.putUserPolicy({
-                        PolicyDocument: policyDocument
-                        , PolicyName: policyName
-                        , UserName: userName
-                    }, function (err, data) {
-                        if (err) {
-                            return reject(err);
-                        } else {
-                            console.log('Created policy named ' + policyName + ' for user ' + userName + '.');
-                            return data;
-                        }
-                    });
-                });
-            } else if (argv.hasOwnProperty('rolePolicy')) {
-                var roleName = argv.rolePolicy;
-                policyName = 'route53-controller';
-                return new Promise(function (resolve, reject) {
-                    return iam.putRolePolicy({
-                        PolicyDocument: policyDocument
-                        , PolicyName: policyName
-                        , RoleName: roleName
-                    }, function (err, data) {
-                        if (err) {
-                            return reject(err);
-                        } else {
-                            console.log('Created policy named ' + policyName + ' for role ' + roleName + '.');
-                            return data;
-                        }
-                    });
-                });
-            } else {
-
-            }
-        })
-        .catch(function (err) {
-            console.error('Error: ', err, err.stack);
-            process.exit(1);
-        });
-};
+    return 'ok';
+});
 
 if (!module.parent) {
     run(require('../lib/aws'), process.argv.slice(2))

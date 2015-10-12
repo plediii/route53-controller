@@ -17,18 +17,18 @@ test('createPolicy', function (t) {
             }
         }, [])
         .catch(function () {
-            s.pass('Resolve successfully');
+            s.pass('rejected with no arguments');
         });
     });
 
-    t.test('Runs ', function (s) {
+    t.test('Runs given the path to a resource definition ', function (s) {
         s.plan(1);
         m({
             IAM: function () {
                 return {};
             }
-        }, [])
-        .catch(function () {
+        }, ['--resource', testResourceFile])
+        .then(function () {
             s.pass('Resolve successfully');
         });
     });
