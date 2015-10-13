@@ -189,6 +189,28 @@ test('createPolicy', function (t) {
         });
     });
 
+    t.test('Returns policy body', function (s) {
+        s.plan(1);
+        m({
+            IAM: function () {
+                return {
+                    createPolicy: function (params, cb) {
+                        return cb();
+                    }
+                };
+            }
+        }, 'test-name', {
+            resource: testResource
+        })
+            .then(function (data) {
+                m.policyBody({}, { resource: testResource })
+                    .then(function (body) {
+                        s.deepEqual(body
+                                    , data.PolicyDocument, "the policy document should be the exepcted body");
+                    });
+            });
+    });
+
     t.test('Rejects on createPolicy error', function (s) {
         s.plan(1);
         m({
