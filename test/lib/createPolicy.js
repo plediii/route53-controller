@@ -189,13 +189,13 @@ test('createPolicy', function (t) {
         });
     });
 
-    t.test('Returns policy body', function (s) {
+    t.test('Returns policy ARN', function (s) {
         s.plan(1);
         m({
             IAM: function () {
                 return {
                     createPolicy: function (params, cb) {
-                        return cb();
+                        return cb(null, { Policy: { Arn: 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution'}});
                     }
                 };
             }
@@ -203,11 +203,7 @@ test('createPolicy', function (t) {
             resource: testResource
         })
             .then(function (data) {
-                m.policyBody({}, { resource: testResource })
-                    .then(function (body) {
-                        s.deepEqual(body
-                                    , data.PolicyDocument, "the policy document should be the exepcted body");
-                    });
+                s.ok(_.isString(data.Policy.Arn));
             });
     });
 
@@ -226,6 +222,32 @@ test('createPolicy', function (t) {
         })
         .catch(function (err) {
             s.pass('Rejected on error');
+        });
+    });
+
+    t.test('Creates userPolicy when given userPolicy param', function (s) {
+        s.plan(4);
+        m({
+            IAM: function () {
+                return {
+                    putUserPolicy: function (params, cb) {
+                        s.equal(params.PolicyName, 'test-name');
+                        s.equal(params.UserName, 'test-user');
+                        m.policyBody({}, { resource: testResource })
+                            .then(function (body) {
+                                s.deepEqual(body
+                                            , JSON.parse(params.PolicyDocument));
+                            });
+                        return cb();
+                    }
+                };
+            }
+        }, 'test-name', {
+            resource: testResource
+            , userName: 'test-user'
+        })
+        .then(function () {
+            s.pass('resolved');
         });
     });
 

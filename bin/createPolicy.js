@@ -8,15 +8,9 @@ var Promise = require('bluebird');
 var _ = require('lodash');
 var fs = require('fs');
 var minimist = require('minimist');
-var route53PolicyStatements = require('../lib/route53PolicyStatements');
-var ec2PolicyStatements = require('../lib/ec2PolicyStatements');
-var s3location = require('../lib/s3location');
-var s3PolicyStatements = require('../lib/s3PolicyStatements');
-var getResourceDefinition = require('../lib/getResourceDefinition');
+var createPolicy = require('../lib/createPolicy');
 
 var run = module.exports = Promise.method(function (AWS, args) {
-    var iam = new AWS.IAM();
-
     var argv = require('minimist')(args);
     if (!argv.hasOwnProperty('s3location') && !argv.hasOwnProperty('resource'))  {
         console.error([
@@ -36,7 +30,6 @@ var run = module.exports = Promise.method(function (AWS, args) {
         ].join('\n'));
         throw new Error('Invalid arguments');
     }
-    return 'ok';
 });
 
 if (!module.parent) {
