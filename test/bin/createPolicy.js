@@ -8,7 +8,7 @@ var fs = require('fs');
 
 var testResourceFile = pathlib.join(__dirname, '/../data/resource.json');
 var testS3LocationFile = pathlib.join(__dirname, '/../data/s3location.json');
-var testResource = fs.readFileSync(testResourceFile);
+var testResource = JSON.parse(fs.readFileSync(testResourceFile));
 
 var mockS3 = function (params) {
     return function () {
@@ -17,6 +17,7 @@ var mockS3 = function (params) {
                 if (params && params.onGetObject) {
                     params.onGetObject(location, cb);
                 }
+                console.log('resolve test resource ', testResource);
                 return cb(null, {
                     Body: JSON.stringify(testResource)
                 });
@@ -55,7 +56,7 @@ test('createPolicy', function (t) {
         s.plan(1);
         m(mockAWS(), ['--resource', testResourceFile])
         .then(function (data) {
-            s.ok(data.hasOwnProperty('PolicyDocument'));
+            s.ok(data.hasOwnProperty('PolicyDocument'), 'Resolved with policy document');
         });
     });
 

@@ -6,9 +6,31 @@
 
 var Promise = require('bluebird');
 var _ = require('lodash');
-var fs = require('fs');
+var fs = Promise.promisifyAll(require('fs'));
 var minimist = require('minimist');
 var createPolicy = require('../lib/createPolicy');
+var getResourceDefinition = require('../lib/getResourceDefinition');
+var s3location = require('../lib/s3location');
+
+var readParams = function (AWS, params) {
+    return getResourceDefinition(AWS, params)
+        .then(function (resource) {
+
+            if (params.hasOwnProperty('s3location')) {
+                return s3location.read(params.s3location)
+                    .then(function (s3location) {
+                        return {
+                            s3location: s3location
+                            , resource: resource
+                        };
+                    });
+            } else {
+                return {
+                    resource: resource
+                };
+            }
+        });
+};
 
 var run = module.exports = Promise.method(function (AWS, args) {
     var argv = require('minimist')(args);
@@ -30,6 +52,18 @@ var run = module.exports = Promise.method(function (AWS, args) {
         ].join('\n'));
         throw new Error('Invalid arguments');
     }
+
+
+    return readParams(AWS, argv)
+        .then(function (resourceParams) {
+            if (!argv.hasOwnProperty('createPolicy')) {
+                return {
+                    PolicyDocument: createPolicy.policyBody(AWS, resourceParams)
+                };
+            } else {
+                
+            }
+        });
 });
 
 if (!module.parent) {
