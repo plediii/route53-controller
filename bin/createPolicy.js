@@ -12,6 +12,54 @@ var createPolicy = require('../lib/createPolicy');
 var getResourceDefinition = require('../lib/getResourceDefinition');
 var s3location = require('../lib/s3location');
 
+var createPolicy = Promise.method(function (iam, document, name, description) {
+    return new Promise(function (resolve, reject) {
+        return iam.createPolicy({
+            PolicyDocument: document
+            , PolicyName: name
+            , Description: description
+        }, function (err, data) {
+            if (err) {
+                return reject(err);
+            } else {
+                return resolve(data);
+            }
+        });
+    });
+});
+
+var putUserPolicy = Promise.method(function (iam, user, document, name) {
+    return new Promise(function (resolve, reject) {
+        return iam.putUserPolicy({
+            PolicyDocument: document
+            , PolicyName: name
+            , UserName: user
+        }, function (err, data) {
+            if (err) {
+                return reject(err);
+            } else {
+                return resolve(data);
+            }
+        });
+    });
+});
+
+var putRolePolicy = Promise.method(function (iam, role, document, name) {
+    return new Promise(function (resolve, reject) {
+        return iam.putRolePolicy({
+            PolicyDocument: document
+            , PolicyName: name
+            , RoleName: role
+        }, function (err, data) {
+            if (err) {
+                return reject(err);
+            } else {
+                return resolve(data);
+            }
+        });
+    });
+});
+
 var readParams = function (AWS, params) {
     return getResourceDefinition(AWS, params)
         .then(function (resource) {
