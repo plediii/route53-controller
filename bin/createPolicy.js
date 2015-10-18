@@ -8,7 +8,7 @@ var Promise = require('bluebird');
 var _ = require('lodash');
 var fs = Promise.promisifyAll(require('fs'));
 var minimist = require('minimist');
-var createPolicy = require('../lib/createPolicy');
+var lambdaPolicy = require('../lib/lambdaPolicy');
 var getResourceDefinition = require('../lib/getResourceDefinition');
 var s3location = require('../lib/s3location');
 
@@ -98,18 +98,24 @@ var run = module.exports = Promise.method(function (AWS, args) {
             ' --rolePolicy roleName               Attach the policy inline to the given IAM role.',
             ''
         ].join('\n'));
-        throw new Error('Invalid arguments');
+        throw new Error('Invalid arguments, s3location or resource required.');
     }
 
 
     return readParams(AWS, argv)
-        .then(function (resourceParams) {
+    .then(function (resourceParams) {
+        return lambdaPolicy(AWS, resourceParams)
+        .then(function (policyDocument){ 
+            return JSON.stringify(policyDocument, null, 4);
+        });
+    })
+        .then(function (policyDocument) {
             if (!argv.hasOwnProperty('createPolicy')) {
                 return {
-                    PolicyDocument: createPolicy.policyBody(AWS, resourceParams)
+                    PolicyDocument: policyDocument
                 };
             } else {
-                
+                return createPolicy(new AWS.IAM(), policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             }
         });
 });
