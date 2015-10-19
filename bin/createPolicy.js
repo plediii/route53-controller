@@ -114,6 +114,8 @@ var run = module.exports = Promise.method(function (AWS, args) {
                 return {
                     PolicyDocument: policyDocument
                 };
+            } else if (argv.hasOwnProperty('userPolicy')) {
+                return putUserPolicy(new AWS.IAM(), argv.userPolicy, policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             } else {
                 return createPolicy(new AWS.IAM(), policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             }
