@@ -201,3 +201,64 @@ test('createPolicy user policy', function (t) {
     });
 });
 
+
+test('createPolicy role policy', function (t) {
+    t.test('Requires resource parameter', function (s) {
+        s.plan(1);
+        m(mockAWS(), ['--createPolicy', 'touch', '--rolePolicy', 'rolename'])
+            .catch(function (err) {
+                s.ok(err.message.match(/resource/), 'Reject references expected parameter');
+            });
+    });
+
+    t.test('Uploads policy for resource', function (s) {
+        s.plan(2);
+        m(mockAWS({
+            putRolePolicy: function (params, cb) {
+                s.pass('Called createPolicy');
+                return cb(null, { Policy: { Arn: 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution'}});
+            }
+        }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
+            .then(function () {
+                s.pass('resolved');
+            });
+    });
+
+    t.test('Creates policy with expected parameters', function (s) {
+        s.plan(3);
+        m(mockAWS({
+            putRolePolicy: function (params, cb) {
+                s.equal(params.PolicyName, 'touch');
+                s.equal(params.RoleName, 'rolename');
+                JSON.parse(params.PolicyDocument);
+                s.pass('policyDocument is JSON parseable');
+            }
+        }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile]);
+    });
+
+    t.test('Returns policy ARN', function (s) {
+        s.plan(1);
+        var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
+        m(mockAWS({
+            putRolePolicy: function (params, cb) {
+                return cb(null, { Policy: { Arn: Arn}});
+            }
+        }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
+            .then(function (data) {
+                s.equal(data.Policy.Arn, Arn);
+            });
+    });
+
+    t.test('Rejects on createPolicy error', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            putRolePolicy: function (params, cb) {
+                return cb('fail');
+            }
+        }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
+            .catch(function (err) {
+                s.pass('Rejected on error');
+            });
+    });
+});
+

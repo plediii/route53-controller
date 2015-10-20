@@ -116,6 +116,8 @@ var run = module.exports = Promise.method(function (AWS, args) {
                 };
             } else if (argv.hasOwnProperty('userPolicy')) {
                 return putUserPolicy(new AWS.IAM(), argv.userPolicy, policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
+            } else if (argv.hasOwnProperty('rolePolicy')) {
+                return putRolePolicy(new AWS.IAM(), argv.rolePolicy, policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             } else {
                 return createPolicy(new AWS.IAM(), policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             }
