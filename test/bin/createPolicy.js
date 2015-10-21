@@ -40,6 +40,9 @@ var mockAWS = function (mockParams) {
     };
 };
 
+var testPolicy = lambdaPolicy(mockAWS(), { resource: testResource });
+
+
 test('createPolicy body', function (t) {
     t.test('Rejects with no arguments', function (s) {
         s.plan(1);
@@ -62,6 +65,19 @@ test('createPolicy body', function (t) {
         m(mockAWS(), ['--resource', testResourceFile])
         .then(function (data) {
             s.ok(data.hasOwnProperty('PolicyDocument'), 'Resolved with policy document');
+        });
+    });
+
+    t.test('Returns expected JSON PolicyDocument ', function (s) {
+        s.plan(2);
+        m(mockAWS(), ['--resource', testResourceFile])
+        .then(function (data) {
+            var doc = JSON.parse(data.PolicyDocument);
+            s.pass('Parsed PolicyDocument JSON');
+            testPolicy
+            .then(function (policy) {
+                s.deepEqual(doc, policy, 'Returned expected policy structure');
+            });
         });
     });
 
@@ -105,12 +121,16 @@ test('createPolicy', function (t) {
     });
 
     t.test('Creates policy with expected parameters', function (s) {
-        s.plan(2);
+        s.plan(3);
         m(mockAWS({
             createPolicy: function (params, cb) {
-                s.equal(params.PolicyName, 'touch');
-                JSON.parse(params.PolicyDocument);
+                s.equal(params.PolicyName, 'touch', 'policy name should be as provided');
+                var doc = JSON.parse(params.PolicyDocument);
                 s.pass('policyDocument is JSON parseable');
+                testPolicy
+                    .then(function (policy) {
+                        s.deepEqual(doc, policy, 'Returned expected policy structure');
+                    });
             }
         }), ['--createPolicy', 'touch', '--resource', testResourceFile]);
     });
@@ -181,10 +201,15 @@ test('createPolicy user policy', function (t) {
         s.plan(3);
         m(mockAWS({
             putUserPolicy: function (params, cb) {
-                s.equal(params.PolicyName, 'touch');
-                s.equal(params.UserName, 'username');
-                JSON.parse(params.PolicyDocument);
+                s.equal(params.PolicyName, 'touch', 'PolicyName should be as expected');
+                s.equal(params.UserName, 'username', 'user policy should be as expected');
+                var doc = JSON.parse(params.PolicyDocument);
                 s.pass('policyDocument is JSON parseable');
+                testPolicy
+                    .then(function (policy) {
+                        s.deepEqual(doc, policy, 'Returned expected policy structure');
+                    });
+
             }
         }), ['--createPolicy', 'touch', '--userPolicy', 'username', '--resource', testResourceFile]);
     });
@@ -257,8 +282,12 @@ test('createPolicy role policy', function (t) {
             putRolePolicy: function (params, cb) {
                 s.equal(params.PolicyName, 'touch');
                 s.equal(params.RoleName, 'rolename');
-                JSON.parse(params.PolicyDocument);
+                var doc = JSON.parse(params.PolicyDocument);
                 s.pass('policyDocument is JSON parseable');
+                testPolicy
+                    .then(function (policy) {
+                        s.deepEqual(doc, policy, 'Returned expected policy structure');
+                    });
             }
         }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile]);
     });

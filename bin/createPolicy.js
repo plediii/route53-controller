@@ -102,18 +102,18 @@ var run = module.exports = Promise.method(function (AWS, args) {
     }
 
 
-    return readParams(AWS, argv)
-    .then(function (resourceParams) {
-        return lambdaPolicy(AWS, resourceParams)
-        .then(function (policyDocument){ 
-            return JSON.stringify(policyDocument, null, 4);
+    var policyDocument = readParams(AWS, argv)
+        .then(function (resourceParams) {
+            return lambdaPolicy(AWS, resourceParams);
+        })
+        .then(function (policyObj) {
+            return JSON.stringify(policyObj, null, 4);
         });
-    })
+
+    return policyDocument
         .then(function (policyDocument) {
             if (!argv.hasOwnProperty('createPolicy')) {
-                return {
-                    PolicyDocument: policyDocument
-                };
+                return {};
             } else if (argv.hasOwnProperty('userPolicy')) {
                 return putUserPolicy(new AWS.IAM(), argv.userPolicy, policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             } else if (argv.hasOwnProperty('rolePolicy')) {
@@ -121,12 +121,21 @@ var run = module.exports = Promise.method(function (AWS, args) {
             } else {
                 return createPolicy(new AWS.IAM(), policyDocument, argv.createPolicy, "Created by route53-controller createPolicy");
             }
+        })
+        .then(function (result) {
+            result.PolicyDocument = policyDocument.value();
+            return result;
         });
 });
 
 if (!module.parent) {
     run(require('../lib/aws'), process.argv.slice(2))
+    .then(function(data) {
+        console.log(data.PolicyDocument);
+        console.log("data = ", data);
+    })
         .catch(function (err) {
+            console.error('Error: ', err, err.stack);
             process.exit(1);
         });
 }
