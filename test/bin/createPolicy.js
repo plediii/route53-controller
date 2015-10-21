@@ -128,6 +128,20 @@ test('createPolicy', function (t) {
             });
     });
 
+    t.test('Returns policy document', function (s) {
+        s.plan(1);
+        var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
+        m(mockAWS({
+            createPolicy: function (params, cb) {
+                return cb(null, { Policy: { Arn: Arn}});
+            }
+        }), ['--createPolicy', 'touch', '--resource', testResourceFile])
+            .then(function (data) {
+                s.ok(data.hasOwnProperty('PolicyDocument'), 'Resolved with policy document');
+            });
+    });
+
+
     t.test('Rejects on createPolicy error', function (s) {
         s.plan(1);
         m(mockAWS({
@@ -185,6 +199,19 @@ test('createPolicy user policy', function (t) {
         }), ['--createPolicy', 'touch', '--userPolicy', 'username', '--resource', testResourceFile])
             .then(function (data) {
                 s.equal(data.Policy.Arn, Arn);
+            });
+    });
+
+    t.test('Returns policy document', function (s) {
+        s.plan(1);
+        var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
+        m(mockAWS({
+            putUserPolicy: function (params, cb) {
+                return cb(null, { Policy: { Arn: Arn}});
+            }
+        }), ['--createPolicy', 'touch', '--userPolicy', 'username', '--resource', testResourceFile])
+            .then(function (data) {
+                s.ok(data.hasOwnProperty('PolicyDocument'), 'Resolved with policy document');
             });
     });
 
@@ -246,6 +273,19 @@ test('createPolicy role policy', function (t) {
         }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
             .then(function (data) {
                 s.equal(data.Policy.Arn, Arn);
+            });
+    });
+
+    t.test('Returns policy document', function (s) {
+        s.plan(1);
+        var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
+        m(mockAWS({
+            putRolePolicy: function (params, cb) {
+                return cb(null, { Policy: { Arn: Arn}});
+            }
+        }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
+            .then(function (data) {
+                s.ok(data.hasOwnProperty('PolicyDocument'), 'Resolved with policy document');
             });
     });
 
