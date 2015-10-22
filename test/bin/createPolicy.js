@@ -198,7 +198,7 @@ test('createPolicy user policy', function (t) {
     });
 
     t.test('Creates policy with expected parameters', function (s) {
-        s.plan(3);
+        s.plan(4);
         m(mockAWS({
             putUserPolicy: function (params, cb) {
                 s.equal(params.PolicyName, 'touch', 'PolicyName should be as expected');
@@ -277,7 +277,7 @@ test('createPolicy role policy', function (t) {
     });
 
     t.test('Creates policy with expected parameters', function (s) {
-        s.plan(3);
+        s.plan(4);
         m(mockAWS({
             putRolePolicy: function (params, cb) {
                 s.equal(params.PolicyName, 'touch');
