@@ -132,7 +132,9 @@ if (!module.parent) {
     run(require('../lib/aws'), process.argv.slice(2))
     .then(function(data) {
         console.log(data.PolicyDocument);
-        console.log("data = ", data);
+        if (data.ResponseMetadata) {
+            console.log(data.ResponseMetadata);
+        }
     })
         .catch(function (err) {
             console.error('Error: ', err, err.stack);

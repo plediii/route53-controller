@@ -214,18 +214,18 @@ test('createPolicy user policy', function (t) {
         }), ['--createPolicy', 'touch', '--userPolicy', 'username', '--resource', testResourceFile]);
     });
 
-    t.test('Returns policy ARN', function (s) {
-        s.plan(1);
-        var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
-        m(mockAWS({
-            putUserPolicy: function (params, cb) {
-                return cb(null, { Policy: { Arn: Arn}});
-            }
-        }), ['--createPolicy', 'touch', '--userPolicy', 'username', '--resource', testResourceFile])
-            .then(function (data) {
-                s.equal(data.Policy.Arn, Arn);
-            });
-    });
+    // t.test('Returns policy ARN', function (s) {
+    //     s.plan(1);
+    //     var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
+    //     m(mockAWS({
+    //         putUserPolicy: function (params, cb) {
+    //             return cb(null, { Policy: { Arn: Arn}});
+    //         }
+    //     }), ['--createPolicy', 'touch', '--userPolicy', 'username', '--resource', testResourceFile])
+    //         .then(function (data) {
+    //             s.equal(data.Policy.Arn, Arn);
+    //         });
+    // });
 
     t.test('Returns policy document', function (s) {
         s.plan(1);
@@ -292,18 +292,18 @@ test('createPolicy role policy', function (t) {
         }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile]);
     });
 
-    t.test('Returns policy ARN', function (s) {
-        s.plan(1);
-        var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
-        m(mockAWS({
-            putRolePolicy: function (params, cb) {
-                return cb(null, { Policy: { Arn: Arn}});
-            }
-        }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
-            .then(function (data) {
-                s.equal(data.Policy.Arn, Arn);
-            });
-    });
+    // t.test('Returns policy ARN', function (s) {
+    //     s.plan(1);
+    //     var Arn  = 'arn:aws:iam::XXXXXXXXXXXX:role/lambda_basic_execution';
+    //     m(mockAWS({
+    //         putRolePolicy: function (params, cb) {
+    //             return cb(null, { Policy: { Arn: Arn}});
+    //         }
+    //     }), ['--createPolicy', 'touch', '--rolePolicy', 'rolename', '--resource', testResourceFile])
+    //         .then(function (data) {
+    //             s.equal(data.Policy.Arn, Arn);
+    //         });
+    // });
 
     t.test('Returns policy document', function (s) {
         s.plan(1);
