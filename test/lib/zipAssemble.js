@@ -91,6 +91,18 @@ test('zipAssemble', function (t) {
         }), testPath, [{ file: 'resource.json' }]);
     });
 
+    t.test('Allows overriding contents with custom data', function (s) {
+        s.plan(1);
+        m(mockZip({
+            file: function (path, data) { 
+                s.equal('custom', data);
+            }
+        }), testPath, [{
+            file: 'resource.json'
+            , data: 'custom'
+        }]);
+    });
+
     t.test('Throws exception if file does not exist', function (s) {
         s.plan(1);
         s.throws(function () {
@@ -98,37 +110,49 @@ test('zipAssemble', function (t) {
         });
     });
 
-    t.test('Generates zip after adding file', function (s) {
-        s.plan(1);
-        var fileAdded = false;
-        m(mockZip({
-            file: function (path, data) { 
-                fileAdded = true;
-            }
-            , generate: function () {
-                s.ok(fileAdded);
-            }
-        }), testPath, [{ file: 'resource.json' }]);
-    });
+    // t.test('Resolves to zip after adding file', function (s) {
+    //     s.plan(1);
+    //     var fileAdded = false;
+    //     var zip = mockZip({
+    //         file: function (path, data) { 
+    //             fileAdded = true;
+    //         }
+    //     });
+    //     m(zip, testPath, [{ file: 'resource.json' }])
+    //     s.equal(zip, );
+    // });
 
-    t.test('Generates nodebuffer', function (s) {
-        s.plan(1);
-        m(mockZip({
-            generate: function (param) {
-                s.equal(param.type, 'nodebuffer');
-            }
-        }), testPath, [{ file: 'resource.json' }]);
-    });
+    // t.test('Generates zip after adding file', function (s) {
+    //     s.plan(1);
+    //     var fileAdded = false;
+    //     m(mockZip({
+    //         file: function (path, data) { 
+    //             fileAdded = true;
+    //         }
+    //         , generate: function () {
+    //             s.ok(fileAdded);
+    //         }
+    //     }), testPath, [{ file: 'resource.json' }]);
+    // });
 
-    t.test('Returns the generated result', function (s) {
-        s.plan(1);
-        var result = m(mockZip({
-            generate: function (param) {
-                return 'result';
-            }
-        }), testPath, [{ file: 'resource.json' }]);
-        s.equal(result, 'result');
-    });
+    // t.test('Generates nodebuffer', function (s) {
+    //     s.plan(1);
+    //     m(mockZip({
+    //         generate: function (param) {
+    //             s.equal(param.type, 'nodebuffer');
+    //         }
+    //     }), testPath, [{ file: 'resource.json' }]);
+    // });
+
+    // t.test('Returns the generated result', function (s) {
+    //     s.plan(1);
+    //     var result = m(mockZip({
+    //         generate: function (param) {
+    //             return 'result';
+    //         }
+    //     }), testPath, [{ file: 'resource.json' }]);
+    //     s.equal(result, 'result');
+    // });
 
 
     
