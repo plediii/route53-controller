@@ -65,10 +65,10 @@ test('zipAssemble', function (t) {
         m(mockZip({
             file: function (path) {
                 if (path === 'subdir/test.txt') {
-                    s.pass('found folder file');
+                    s.pass('added subdir/test.txt');
                 }
                 if (path === 'subdir/subsubdir/subtest.txt') {
-                    s.pass('found folder file');
+                    s.pass('added subdir/subsubdir/subtest.txt');
                 }
             }
             , folder: function (path) {
@@ -76,7 +76,7 @@ test('zipAssemble', function (t) {
                     s.pass('added subdir');
                 }
                 if (path === 'subdir/subsubdir') {
-                    s.pass('added subsubdir');
+                    s.pass('added subdir/subsubdir');
                 }
             }
         }), testPath, [{ folder: 'subdir' }]);
@@ -86,7 +86,7 @@ test('zipAssemble', function (t) {
         s.plan(1);
         m(mockZip({
             file: function (path, data) { 
-                s.equal(fs.readFileSync(testPath + '/resource.json'), data);
+                s.equal(fs.readFileSync(testPath + '/resource.json').toString(), data.toString());
             }
         }), testPath, [{ file: 'resource.json' }]);
     });
