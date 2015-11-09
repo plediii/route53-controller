@@ -28,17 +28,39 @@ test('zipDeployment', function (t) {
         }, {}));
     });
 
+    t.test('Zips lib folder', function (s) {
+        s.plan(1);
+        m(mockZip({
+            folder: function (path, data) {
+                if (path === 'lib') {
+                    s.pass('Zipped lib folder');
+                }
+            }
+        }, {}));
+    });
+
+    // t.test('Zips node_modules folder', function (s) {
+    //     s.plan(1);
+    //     m(mockZip({
+    //         folder: function (path, data) {
+    //             if (path === 'lib') {
+    //                 s.pass('Zipped lib folder');
+    //             }
+    //         }
+    //     }, {}));
+    // });
+
     t.test('Zips s3Location with provided data', function (s) {
         s.plan(1);
         m(mockZip({
             file: function (path, data) {
                 if (path === 's3Location.json') {
-                    s.equal(data, 's3-data');
+                    s.equal(data, JSON.stringify('s3-data'));
                 }
             }
-        }, {
+        }), {
             s3Location: 's3-data'
-        }));
+        });
     });
 
     t.test('Zips resource with provided data', function (s) {
@@ -46,12 +68,12 @@ test('zipDeployment', function (t) {
         m(mockZip({
             file: function (path, data) {
                 if (path === 'resource.json') {
-                    s.equal(data, 'resource-data');
+                    s.equal(data, JSON.stringify('resource-data'));
                 }
             }
-        }, {
+        }), {
             resource: 'resource-data'
-        }));
+        });
     });
 
     t.test('Generates nodebuffer', function (s) {
@@ -60,7 +82,7 @@ test('zipDeployment', function (t) {
             generate: function (param) {
                 s.equal(param.type, 'nodebuffer');
             }
-        }, {}));
+        }), {});
     });
 
     t.test('Returns the generated nodebuffer', function (s) {
