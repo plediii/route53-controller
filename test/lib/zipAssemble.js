@@ -82,6 +82,14 @@ test('zipAssemble', function (t) {
         }), testPath, [{ folder: 'subdir' }]);
     });
 
+
+    t.test('Throws on unexpected assembly type', function (s) {
+        s.plan(1);
+        s.throws(function () {
+           m(mockZip({}), testPath, [{ fil: 'resource.json' }]);
+        }, /type/, 'Should throw on unrecognzed assembly type');
+    });
+
     t.test('Places file with expected contents', function (s) {
         s.plan(1);
         m(mockZip({
