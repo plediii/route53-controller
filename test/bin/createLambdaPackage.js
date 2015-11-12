@@ -7,8 +7,10 @@ var pathlib = require('path');
 var fs = require('fs');
 
 var testResourceFile = pathlib.join(__dirname, '/../data/resource.json');
-var testS3LocationFile = pathlib.join(__dirname, '/../data/s3location.json');
 var testResource = JSON.parse(fs.readFileSync(testResourceFile));
+
+var testS3LocationFile = pathlib.join(__dirname, '/../data/s3location.json');
+var testS3Location = JSON.parse(fs.readFileSync(testS3LocationFile));
 
 var mockAWS = function (mockParams) {
     var nop = function () {};
@@ -57,6 +59,17 @@ test('createLambda', function (t) {
         .then(function (result) {
             s.equal(result, 'result');
         });
+    });
+
+    t.test('Reads and zips resource.json if provided', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            file: function (path, data) {
+                if (path === testResourceFile) {
+                    s.deepEqual(JSON.parse(data), testResource);
+                }
+            }
+        }), ['--resource', testResourceFile]);
     });
 });
 
