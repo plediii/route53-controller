@@ -43,21 +43,71 @@ var mockZip = function (params) {
     return {
         file: params.file ||  nop
         , folder: params.folder || nop
-        , generate: params.generate || nop
+        , generate: params.generate || function () {
+            return 'test';
+        }
     };
 };
 
 
 test('createLambda', function (t) {
-    t.test('Creates a zip, and returns the result', function (s) {
+    t.test('Creates a zip', function (s) {
         s.plan(1);
         m(mockAWS(), mockZip({
             generate: function (param) {
                 return 'result';
             }
         }), [])
-        .then(function (result) {
-            s.equal(result, 'result');
+        .then(function () {
+            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip'), 'result');
+        });
+    });
+
+    t.test('Writes the result to lambda.zip by default', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            generate: function (param) {
+                return 'result';
+            }
+        }), [])
+        .then(function () {
+            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip'), 'result');
+        });
+    });
+
+    t.test('declares the output file', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            generate: function (param) {
+                return 'result';
+            }
+        }), [])
+        .then(function (out) {
+            s.ok(out.match(/lambda.zip/));
+        });
+    });
+
+    t.test('Writes result to specificied given file name', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            generate: function (param) {
+                return 'result';
+            }
+        }), ['--out', 'result.zip'])
+        .then(function () {
+            s.equal(fs.readFileSync(process.cwd() + '/result.zip'), 'result');
+        });
+    });
+
+    t.test('declares the output file', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            generate: function (param) {
+                return 'result';
+            }
+        }), ['--out', 'result.zip'])
+        .then(function (out) {
+            s.ok(out.match(/result.zip/));
         });
     });
 
@@ -65,11 +115,22 @@ test('createLambda', function (t) {
         s.plan(1);
         m(mockAWS(), mockZip({
             file: function (path, data) {
-                if (path === testResourceFile) {
+                if (path === 'resource.json') {
                     s.deepEqual(JSON.parse(data), testResource);
                 }
             }
         }), ['--resource', testResourceFile]);
+    });
+
+    t.test('Reads and zips s3location.json if provided', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            file: function (path, data) {
+                if (path === 's3location.json') {
+                    s.deepEqual(JSON.parse(data), testS3Location);
+                }
+            }
+        }), ['--s3location', testResourceFile]);
     });
 });
 
