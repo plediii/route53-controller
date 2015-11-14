@@ -1,7 +1,7 @@
 "use strict";
 
 var test = require('tape');
-var m = require('../../bin/createLambda');
+var m = require('../../bin/createLambdaPackage');
 var _ = require('lodash');
 var pathlib = require('path');
 var fs = require('fs');
@@ -59,7 +59,7 @@ test('createLambda', function (t) {
             }
         }), [])
         .then(function () {
-            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip'), 'result');
+            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip').toString(), 'result');
         });
     });
 
@@ -71,7 +71,7 @@ test('createLambda', function (t) {
             }
         }), [])
         .then(function () {
-            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip'), 'result');
+            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip').toString(), 'result');
         });
     });
 
@@ -83,7 +83,8 @@ test('createLambda', function (t) {
             }
         }), [])
         .then(function (out) {
-            s.ok(out.match(/lambda.zip/));
+            console.log('out ', out);
+            s.ok(out.match(/lambda.zip/), 'mentions expected output file');
         });
     });
 
@@ -95,7 +96,7 @@ test('createLambda', function (t) {
             }
         }), ['--out', 'result.zip'])
         .then(function () {
-            s.equal(fs.readFileSync(process.cwd() + '/result.zip'), 'result');
+            s.equal(fs.readFileSync(process.cwd() + '/result.zip').toString(), 'result', 'writes expected output');
         });
     });
 
@@ -107,7 +108,7 @@ test('createLambda', function (t) {
             }
         }), ['--out', 'result.zip'])
         .then(function (out) {
-            s.ok(out.match(/result.zip/));
+            s.ok(out.match(/result.zip/), 'mentions custom output path');
         });
     });
 
@@ -116,7 +117,7 @@ test('createLambda', function (t) {
         m(mockAWS(), mockZip({
             file: function (path, data) {
                 if (path === 'resource.json') {
-                    s.deepEqual(JSON.parse(data), testResource);
+                    s.deepEqual(JSON.parse(data.toString()), testResource);
                 }
             }
         }), ['--resource', testResourceFile]);
@@ -126,11 +127,11 @@ test('createLambda', function (t) {
         s.plan(1);
         m(mockAWS(), mockZip({
             file: function (path, data) {
-                if (path === 's3location.json') {
+                if (path === 's3Location.json') {
                     s.deepEqual(JSON.parse(data), testS3Location);
                 }
             }
-        }), ['--s3location', testResourceFile]);
+        }), ['--s3location', testS3LocationFile]);
     });
 });
 
