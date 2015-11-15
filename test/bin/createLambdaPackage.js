@@ -51,40 +51,25 @@ var mockZip = function (params) {
 
 
 test('createLambda', function (t) {
-    t.test('Creates a zip', function (s) {
+
+    t.test('rejects on no arguments', function (s) {
         s.plan(1);
-        m(mockAWS(), mockZip({
-            generate: function (param) {
-                return 'result';
-            }
-        }), [])
-        .then(function () {
-            s.equal(fs.readFileSync(process.cwd() + '/lambda.zip').toString(), 'result');
+        m(mockAWS(), mockZip({}), [])
+        .catch(function () {
+            s.pass('no arguments rejected');
         });
     });
 
-    t.test('Writes the result to lambda.zip by default', function (s) {
+
+    t.test('Creates a zip when given an output file', function (s) {
         s.plan(1);
         m(mockAWS(), mockZip({
             generate: function (param) {
                 return 'result';
             }
-        }), [])
+        }), ['--out', 'lambda.zip'])
         .then(function () {
             s.equal(fs.readFileSync(process.cwd() + '/lambda.zip').toString(), 'result');
-        });
-    });
-
-    t.test('declares the output file', function (s) {
-        s.plan(1);
-        m(mockAWS(), mockZip({
-            generate: function (param) {
-                return 'result';
-            }
-        }), [])
-        .then(function (out) {
-            console.log('out ', out);
-            s.ok(out.match(/lambda.zip/), 'mentions expected output file');
         });
     });
 
@@ -120,7 +105,7 @@ test('createLambda', function (t) {
                     s.deepEqual(JSON.parse(data.toString()), testResource);
                 }
             }
-        }), ['--resource', testResourceFile]);
+        }), ['--resource', testResourceFile, '--out', 'lambda.zip']);
     });
 
     t.test('Reads and zips s3location.json if provided', function (s) {
@@ -131,7 +116,7 @@ test('createLambda', function (t) {
                     s.deepEqual(JSON.parse(data), testS3Location);
                 }
             }
-        }), ['--s3location', testS3LocationFile]);
+        }), ['--s3location', testS3LocationFile, '--out', 'lambda.zip']);
     });
 });
 
