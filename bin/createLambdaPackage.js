@@ -10,9 +10,24 @@ var zipDeployment = require('../lib/zipDeployment');
 
 var outputPath = './lambda.zip';
 
-var run = module.exports =  function (aws, zip, args) {
+var run = module.exports =  Promise.method(function (aws, zip, args) {
     var argv = require('minimist')(args);
-    var outputPath = argv.out || (process.cwd() + '/lambda.zip');
+    if (argv._.length !== 1) {
+        console.error([
+            '',
+            'Create a lambda deloyment package.',
+            '',
+            'Usage: createLambdaPackage out.zip [options]',
+            '',
+            '',
+            'Options: ',
+            ' --s3location s3location.json        Include the s3 location file from the this path.',
+            ' --resource resource.json            Include the resource.json from this path.',
+            ''
+        ].join('\n'));
+        throw new Error('output location required.');
+    }
+    var outputPath = argv._[0];
     return zipDeployment(zip, {
         resource: argv.resource && JSON.parse(fs.readFileSync(argv.resource))
         , s3Location: argv.s3location && JSON.parse(fs.readFileSync(argv.s3location))
@@ -23,7 +38,7 @@ var run = module.exports =  function (aws, zip, args) {
         .then(function () {
             return outputPath;
         });
-};
+});
 
 if (!module.parent) {
     run(require('../lib/aws'), require('jszip'), process.argv.slice(2))
