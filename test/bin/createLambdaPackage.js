@@ -67,7 +67,7 @@ test('createLambda', function (t) {
             generate: function (param) {
                 return 'result';
             }
-        }), ['--out', 'lambda.zip'])
+        }), ['lambda.zip'])
         .then(function () {
             s.equal(fs.readFileSync(process.cwd() + '/lambda.zip').toString(), 'result');
         });
@@ -79,7 +79,7 @@ test('createLambda', function (t) {
             generate: function (param) {
                 return 'result';
             }
-        }), ['--out', 'result.zip'])
+        }), ['result.zip'])
         .then(function () {
             s.equal(fs.readFileSync(process.cwd() + '/result.zip').toString(), 'result', 'writes expected output');
         });
@@ -91,7 +91,7 @@ test('createLambda', function (t) {
             generate: function (param) {
                 return 'result';
             }
-        }), ['--out', 'result.zip'])
+        }), ['result.zip'])
         .then(function (out) {
             s.ok(out.match(/result.zip/), 'mentions custom output path');
         });
@@ -105,7 +105,7 @@ test('createLambda', function (t) {
                     s.deepEqual(JSON.parse(data.toString()), testResource);
                 }
             }
-        }), ['--resource', testResourceFile, '--out', 'lambda.zip']);
+        }), ['lambda.zip', '--resource', testResourceFile]);
     });
 
     t.test('Reads and zips s3location.json if provided', function (s) {
@@ -116,7 +116,7 @@ test('createLambda', function (t) {
                     s.deepEqual(JSON.parse(data), testS3Location);
                 }
             }
-        }), ['--s3location', testS3LocationFile, '--out', 'lambda.zip']);
+        }), ['lambda.zip', '--s3location', testS3LocationFile]);
     });
 });
 
