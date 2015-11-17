@@ -41,7 +41,7 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
 });
 
 if (!module.parent) {
-    run(require('../lib/aws'), require('jszip'), process.argv.slice(2))
+    run(require('../lib/aws'), require('jszip')(), process.argv.slice(2))
     .then(function (out) {
         console.log('Created ', out);
     });
