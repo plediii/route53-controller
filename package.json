@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "jshint *.js lib bin test",
-      "coverage": "istanbul cover test/all.js",
-    "test": "node test/all.js"
+      "coverage": "istanbul cover test",
+    "test": "node test"
   },
   "bin": {
     "route53-controller-policy": "./bin/create-policy.js",
