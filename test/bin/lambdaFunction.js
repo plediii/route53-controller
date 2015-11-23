@@ -35,6 +35,33 @@ var mockAWS = function (mockParams) {
                 }
             };
         }
+        , Lambda: function () {
+            return {
+                createFunction: function (params, cb) {
+                    if (mockParams && mockParams.createFunction) {
+                        return mockParams.createFunction(params, cb);
+                    } else {
+                        return cb(null, {});
+                    }
+                }
+                , updateFunctionCode: function (params, cb) {
+                    if (mockParams && mockParams.updateFunctionCode) {
+                        return mockParams.updateFunctionCode(params, cb);
+                    } else {
+                        return cb(null, {});
+                    }
+                }
+            };
+        }
+        , config: {
+            update: function (params) {
+                if (mockParams && mockParams.configUpdate) {
+                    return mockParams.configUpdate(params);
+                } else {
+                    return;
+                }
+            }
+        }
     };
 };
 
@@ -60,13 +87,127 @@ test('lambdaFunction', function (t) {
         });
     });
 
-    t.test('Creates a zip when "creating" and given functionname, rolename, resource', function (s) {
+    t.test('rejects given only create argument', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({}), ['create'])
+        .catch(function () {
+            s.pass('no create arguments rejected');
+        });
+    });
+
+    t.test('rejects given only role ARN', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({}), ['create', '--role', 'roleARN'])
+        .catch(function () {
+            s.pass('no create arguments rejected');
+        });
+    });
+
+
+    t.test('Creates a zip when "creating" and given rolename, resource', function (s) {
         s.plan(1);
         m(mockAWS(), mockZip({
             generate: function (param) {
                 s.pass('Generated a zip');
             }
-        }), ['create', '--name', 'functionName', '--role', 'roleName', '--resource', testResource]);
+        }), ['create', '--role', 'roleName', '--resource', testResourceFile]);
+    });
+
+    t.test('rejects given an unrecognized verb', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({}), ['whatwhat', '--role', 'roleARN'])
+        .catch(function () {
+            s.pass('unrecognized verb rejected');
+        });
+    });
+
+    t.test('Creates a with the expected resource', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            file: function (path, data) {
+                if (path === 'resource.json') {
+                    s.deepEqual(JSON.parse(data.toString()), testResource);
+                }
+            }
+        }), ['create', '--role', 'roleName', '--resource', testResourceFile]);
+    });
+
+    t.test('Creates a lambda function when "creating" and given rolename, resource', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            createFunction: function (params, cb) {
+                s.pass('Created lambda function');
+            }
+        }), mockZip(), ['create', '--role', 'roleName', '--resource', testResourceFile]);
+    });
+
+    t.test('Creates a lambda function a default name of route53-controller', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            createFunction: function (params, cb) {
+                s.equal(params.FunctionName, 'route53-controller');
+            }
+        }), mockZip(), ['create', '--role', 'roleName', '--resource', testResourceFile]);
+    });
+
+    t.test('Creates a lambda function with given role arn', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            createFunction: function (params, cb) {
+                s.equal(params.Role, 'roleARN');
+            }
+        }), mockZip(), ['create', '--role', 'roleARN', '--resource', testResourceFile]);
+    });
+
+    t.test('Creates a lambda function with created zip file', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            createFunction: function (params, cb) {
+                s.equal(params.Code.ZipFile, 'zippy');
+            }
+        }), mockZip({
+            generate: function (param) {
+                return 'zippy';
+            }
+        }), ['create', '--role', 'roleARN', '--resource', testResourceFile]);
+    });
+
+    t.test('Creates a lambda function with given name', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            createFunction: function (params, cb) {
+                s.equal(params.FunctionName, 'functionName');
+            }
+        }), mockZip(), ['create', '--name', 'functionName', '--role', 'roleName', '--resource', testResourceFile]);
+    });
+
+    t.test('Creates a lambda function after settng requested region', function (s) {
+        s.plan(2);
+        var regionSet = false;
+        m(mockAWS({
+            configUpdate: function (params) {
+                s.equal(params.region, 'australia');
+                regionSet = true;
+            }
+            , createFunction: function (params, cb) {
+                s.ok(regionSet);
+            }
+        }), mockZip({
+            generate: function (param) {
+                return 'zippy';
+            }
+        }), ['create', '--role', 'roleARN', '--resource', testResourceFile, '--region', 'australia']);
+    });
+
+    t.test('Creates a zip file with s3location if provided ', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            file: function (path, data) {
+                if (path === 's3location.json') {
+                    s.deepEqual(JSON.parse(data.toString()), testS3Location);
+                }
+            }
+        }), ['create', '--role', 'roleName', '--s3location', testS3LocationFile]);
     });
 });
 

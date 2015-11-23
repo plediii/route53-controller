@@ -24,6 +24,11 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
             ].join('\n'));
             throw new Error('output location required.');
         }
+        
+        var action = argv._[0];
+        if (action === 'create') {
+            
+        }
     }
 });
 
