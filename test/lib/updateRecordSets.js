@@ -565,6 +565,68 @@ test('updateRecordSets', function (t) {
             });
         });
 
+        s.test('Calls Route53.changeResourceRecordSets even if some resource is empty', function (r) {
+            r.plan(6);
+            m.updateResources({
+                EC2: function () {
+                    return {
+                        describeInstances: function (params, cb) {
+                            if (!params.Filters || params.Filters.length === 0) {
+                                cb(null, {
+                                    Reservations: [{
+                                        Instances: []
+                                    }]
+                                });
+                            } else {
+                                cb(null, {
+                                    Reservations: [{
+                                        Instances: [{
+                                            PublicIpAddress: '192.1.1.1'
+                                            , PrivateIpAddress: '127.1.1.1'
+                                        }]
+                                    }]
+                                });
+                            }
+                        }
+                    };
+                }
+                , Route53: function () {
+                    return {
+                        changeResourceRecordSets: function (params, cb) {
+                            r.pass('Called changeResourceRecordSets');
+                            r.equal("Z148QEXAMPLE8V", params.HostedZoneId);
+                            r.equal(1, params.ChangeBatch.Changes.length);
+                            r.equal(1, params.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords.length);
+                            r.equal("192.1.1.1", params.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords[0].Value);
+                            return cb();
+                        }
+                    };
+                }
+            }, {
+                HostedZone: "Z148QEXAMPLE8V"
+                , Resources: {
+                    test: {
+                        Instances: [{
+                            Filters: [{
+                                "Name": "tag:Name",
+                                "Values": [ "not.empty" ]
+                            }]
+                        }]
+                        , ResourceRecordSet: { Name: 'resource' }
+                    }
+                    , empty: {
+                        Instances: [{
+                            Filters: []
+                        }]
+                        , ResourceRecordSet: { Name: 'empty' }
+                    } 
+                }
+            })
+            .then(function () {
+                r.pass('Completed successfully.');
+            });
+        });
+
         s.test('Rejects on  Route53.changeResourceRecordSets error', function (r) {
             r.plan(1);
             m.updateResources({
