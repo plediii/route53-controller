@@ -66,6 +66,7 @@ var mockAWS = function (mockParams) {
 };
 
 var mockZip = function (params) {
+    params = params || {};
     var nop = function () {};
     return {
         file: params.file ||  nop
@@ -89,6 +90,7 @@ test('lambdaFunction', function (t) {
 
     t.test('rejects given only create argument', function (s) {
         s.plan(1);
+        console.log('create test');
         m(mockAWS(), mockZip({}), ['create'])
         .catch(function () {
             s.pass('no create arguments rejected');
@@ -102,7 +104,6 @@ test('lambdaFunction', function (t) {
             s.pass('no create arguments rejected');
         });
     });
-
 
     t.test('Creates a zip when "creating" and given rolename, resource', function (s) {
         s.plan(1);
