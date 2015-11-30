@@ -78,7 +78,7 @@ var mockZip = function (params) {
 };
 
 
-test('lambdaFunction', function (t) {
+test('lambdaFunction create', function (t) {
 
     t.test('rejects on no arguments', function (s) {
         s.plan(1);
@@ -208,6 +208,110 @@ test('lambdaFunction', function (t) {
                 }
             }
         }), ['create', '--role', 'roleName', '--s3location', testS3LocationFile]);
+    });
+});
+
+test('lambdaFunction update', function (t) {
+
+    t.test('rejects given only update argument', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({}), ['update'])
+        .catch(function () {
+            s.pass('no create arguments rejected');
+        });
+    });
+
+    t.test('Generates a zip when "updating" and given resource', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            generate: function (param) {
+                s.pass('Generated a zip');
+            }
+        }), ['update', '--resource', testResourceFile]);
+    });
+
+    t.test('Rejects when given role a zip when "updating" and given resource', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip(), ['update', '--role', 'roleARN', '--resource', testResourceFile])
+        .catch(function (err) {
+            s.ok(err.message.match(/role/), 'Role can not be updated');
+        });
+    });
+
+    t.test('Creates zip with the expected resource', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            file: function (path, data) {
+                if (path === 'resource.json') {
+                    s.deepEqual(JSON.parse(data.toString()), testResource);
+                }
+            }
+        }), ['update', '--resource', testResourceFile]);
+    });
+
+    t.test('Updates a lambda function when "creating" and given rolename, resource', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            updateFunctionCode: function (params, cb) {
+                s.pass('Updated lambda function');
+            }
+        }), mockZip(), ['update', '--resource', testResourceFile]);
+    });
+
+    t.test('Updates a lambda function with a default name of route53-controller', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            updateFunctionCode: function (params, cb) {
+                s.equal(params.FunctionName, 'route53-controller');
+            }
+        }), mockZip(), ['update', '--resource', testResourceFile]);
+    });
+
+    t.test('Updates a lambda function with created zip file', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            updateFunctionCode: function (params, cb) {
+                s.equal(params.ZipFile, 'zippy');
+            }
+        }), mockZip({
+            generate: function (param) {
+                return 'zippy';
+            }
+        }), ['update', '--resource', testResourceFile]);
+    });
+
+    t.test('Updates a lambda function with given name', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            updateFunctionCode: function (params, cb) {
+                s.equal(params.FunctionName, 'functionName');
+            }
+        }), mockZip(), ['update', '--name', 'functionName', '--resource', testResourceFile]);
+    });
+
+    t.test('Updates a lambda function after settng requested region', function (s) {
+        s.plan(2);
+        var regionSet = false;
+        m(mockAWS({
+            configUpdate: function (params) {
+                s.equal(params.region, 'australia');
+                regionSet = true;
+            }
+            , updateFunctionCode: function (params, cb) {
+                s.ok(regionSet, 'region set before creating function');
+            }
+        }), mockZip(), ['update', '--resource', testResourceFile, '--region', 'australia']);
+    });
+
+    t.test('Creates a zip file with s3location if provided ', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({
+            file: function (path, data) {
+                if (path === 's3Location.json') {
+                    s.deepEqual(JSON.parse(data.toString()), testS3Location);
+                }
+            }
+        }), ['update', '--s3location', testS3LocationFile]);
     });
 });
 
