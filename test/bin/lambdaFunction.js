@@ -203,7 +203,7 @@ test('lambdaFunction', function (t) {
         s.plan(1);
         m(mockAWS(), mockZip({
             file: function (path, data) {
-                if (path === 's3location.json') {
+                if (path === 's3Location.json') {
                     s.deepEqual(JSON.parse(data.toString()), testS3Location);
                 }
             }

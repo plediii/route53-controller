@@ -51,15 +51,17 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
         }
         var roleARN = argv.role;
         var resource = argv.resource;
+        var s3location = argv.s3location;
         var functionName = argv.name || 'route53-controller';
         if (!roleARN) {
             throw new Error('--role ARN is required to create a new lambda function.');
         }
-        if (!resource) {
+        if (!(resource || s3location)) {
             throw new Error('--resource is required to create a new lambda function.');
         }
         return zipDeployment(zip, {
             resource: resource && JSON.parse(fs.readFileSync(resource))
+            , s3Location: s3location && JSON.parse(fs.readFileSync(s3location))
         })
         .then(function (data) {
             return createFunction(aws, {
