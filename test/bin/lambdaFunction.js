@@ -90,7 +90,6 @@ test('lambdaFunction', function (t) {
 
     t.test('rejects given only create argument', function (s) {
         s.plan(1);
-        console.log('create test');
         m(mockAWS(), mockZip({}), ['create'])
         .catch(function () {
             s.pass('no create arguments rejected');
@@ -191,7 +190,7 @@ test('lambdaFunction', function (t) {
                 regionSet = true;
             }
             , createFunction: function (params, cb) {
-                s.ok(regionSet);
+                s.ok(regionSet, 'region set before creating function');
             }
         }), mockZip({
             generate: function (param) {

@@ -32,9 +32,11 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
                 ' action                              Either "create" or "update" a lambda function.',
                 '',
                 'Options: ',
-                ' --s3location s3location.json        Include the s3 location file from the this path.',
+                ' --name functionName                 The name of the lambda function (defaults to "route53-controller").',
+                ' --region awsRegion                  The AWS region in which the lambda function should exist.',
                 ' --resource resource.json            Include the resource.json from this path.',
                 ' --role roleARN                      The lambda function role ARN (required to create).',
+                ' --s3location s3location.json        Include the s3 location file from the this path.',
                 ''
             ].join('\n'));
             throw new Error('output location required.');
@@ -42,10 +44,14 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
     }
 
     var action = argv._[0];
+    var region = argv.region;
     if (action === 'create') {
+        if (region) {
+            aws.config.update({ region: region });
+        }
         var roleARN = argv.role;
         var resource = argv.resource;
-        var functionName = 'r';
+        var functionName = argv.name || 'route53-controller';
         if (!roleARN) {
             throw new Error('--role ARN is required to create a new lambda function.');
         }
@@ -55,9 +61,9 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
         return zipDeployment(zip, {
             resource: resource && JSON.parse(fs.readFileSync(resource))
         })
-        .then(function () {
-            return createFunction({
-                Code: {  ZipFile: zip.generate({ type: 'nodebuffer' }) }
+        .then(function (data) {
+            return createFunction(aws, {
+                Code: {  ZipFile: data }
                 , FunctionName: functionName
                 , Handler: 'lambda-index.handler'
                 , Role: roleARN
