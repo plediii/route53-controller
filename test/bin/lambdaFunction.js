@@ -230,7 +230,7 @@ test('lambdaFunction update', function (t) {
         }), ['update', '--resource', testResourceFile]);
     });
 
-    t.test('Rejects when given role a zip when "updating" and given resource', function (s) {
+    t.test('Rejects when given role when "updating" and given resource', function (s) {
         s.plan(1);
         m(mockAWS(), mockZip(), ['update', '--role', 'roleARN', '--resource', testResourceFile])
         .catch(function (err) {
@@ -249,7 +249,7 @@ test('lambdaFunction update', function (t) {
         }), ['update', '--resource', testResourceFile]);
     });
 
-    t.test('Updates a lambda function when "creating" and given rolename, resource', function (s) {
+    t.test('Updates a lambda function when "updating" and given resource', function (s) {
         s.plan(1);
         m(mockAWS({
             updateFunctionCode: function (params, cb) {

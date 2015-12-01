@@ -16,6 +16,18 @@ var createFunction = function (AWS, params) {
     });
 };
 
+var updateFunctionCode = function (AWS, params) {
+    return new Promise(function (resolve, reject) {
+        return new AWS.Lambda().updateFunctionCode(params, function (err, data) {
+            if (err) {
+                return reject(err);
+            } else {
+                return resolve(data);
+            }
+        });
+    });
+};
+
 var run = module.exports =  Promise.method(function (aws, zip, args) {
     var argv = require('minimist')(args);
     if (argv._.length === 0) {
@@ -45,35 +57,48 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
 
     var action = argv._[0];
     var region = argv.region;
+    if (region) {
+        aws.config.update({ region: region });
+    }
+    var resource = argv.resource;
+    var s3location = argv.s3location;
+    var functionName = argv.name || 'route53-controller';
+    if (!(resource || s3location)) {
+        throw new Error('--resource or --s3location is required to create a new lambda function.');
+    }
+    var roleARN = argv.role;
+    var zipFile = zipDeployment(zip, {
+        resource: resource && JSON.parse(fs.readFileSync(resource))
+        , s3Location: s3location && JSON.parse(fs.readFileSync(s3location))
+    });
+
     if (action === 'create') {
-        if (region) {
-            aws.config.update({ region: region });
-        }
-        var roleARN = argv.role;
-        var resource = argv.resource;
-        var s3location = argv.s3location;
-        var functionName = argv.name || 'route53-controller';
         if (!roleARN) {
             throw new Error('--role ARN is required to create a new lambda function.');
         }
-        if (!(resource || s3location)) {
-            throw new Error('--resource is required to create a new lambda function.');
-        }
-        return zipDeployment(zip, {
-            resource: resource && JSON.parse(fs.readFileSync(resource))
-            , s3Location: s3location && JSON.parse(fs.readFileSync(s3location))
-        })
-        .then(function (data) {
-            return createFunction(aws, {
-                Code: {  ZipFile: data }
-                , FunctionName: functionName
-                , Handler: 'lambda-index.handler'
-                , Role: roleARN
-                , Description: 'route53-controller Lambda function'
-                , Runtime: 'nodejs'
-                , Timeout: 10
+        return zipFile
+            .then(function (data) {
+                return createFunction(aws, {
+                    Code: {  ZipFile: data }
+                    , FunctionName: functionName
+                    , Handler: 'lambda-index.handler'
+                    , Role: roleARN
+                    , Description: 'route53-controller Lambda function'
+                    , Runtime: 'nodejs'
+                    , Timeout: 10
+                });
             });
-        });
+    } else if (action === 'update') {
+        if (roleARN) {
+            throw new Error('--role ARN can not be updated.');
+        }
+        return zipFile
+            .then(function (data) {
+                return updateFunctionCode(aws, {
+                    FunctionName: functionName
+                    , ZipFile: data
+                });
+            });
     } else {
         throw new Error('Unrecongized action: ' + action);
     }
