@@ -3,6 +3,7 @@
 
 var Promise = require('bluebird');
 var fs = require('fs');
+var getResourceDefinition = require('./lib/getResourceDefinition');
 var updateRecordSets = require('./lib/updateRecordSets');
 
 var existsAsync = function (path) {
@@ -19,12 +20,11 @@ var existsAsync = function (path) {
 module.exports = function (AWS, params) {
     var s3LocationPath = params.s3LocationPath;
     var resourcePath = params.resourcePath;
-    return Promise.join(existsAsync(s3LocationPath)
-                        , existsAsync(resourcePath)
-                        , function (s3LocationExists, resourceExists) {
-                            return updateRecordSets({
-                                s3Location: s3LocationExists && s3LocationPath
-                                , resource: resourceExists && resourcePath
-                            });
-                        });
+    return getResourceDefinition(AWS, {
+        s3location: s3LocationPath
+        , resource: resourcePath
+    })
+        .then(function (resource) {
+            return updateRecordSets(AWS, resource);
+        });
 };
