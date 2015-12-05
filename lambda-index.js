@@ -1,14 +1,17 @@
 /*jslint node: true */
 "use strict";
 
-var r53controller = require('..');
-var AWS = require('./lib/aws') ;
+var r53controller = require('.');
+
+exports.paths = {
+    resourcePath: './resource.json'
+    , s3LocationPath: './s3Location.json'
+};
+
+exports.AWS = require('./lib/aws');
 
 exports.handler = function (event, context) {
-    return r53controller(AWS, {
-        resourcePath: './resource.json'
-        , s3LocationPath: './s3Location.json'
-    })
+    return r53controller(exports.AWS, exports.paths)
         .then(function (data) {
             context.succeed(data);
         })

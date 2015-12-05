@@ -3,4 +3,4 @@
 require('./lib');
 require('./bin');
 require('./module');
-
+require('./lambda-index');
