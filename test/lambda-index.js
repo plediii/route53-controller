@@ -82,4 +82,38 @@ test('lambda-index', function (t) {
         });
         m.handler();
     });
+
+    t.test('resolves on success', function (s) {
+        s.plan(1);
+        m.AWS = mockAWS({
+            changeResourceRecordSets: function (params, cb) {
+                return cb();
+            }
+        });
+        m.handler({}, {
+            succeed: function () {
+                s.pass('Resolved');
+            }
+            , fail: function () {
+                s.fail('rejected');
+            }
+        });
+    });
+
+    t.test('rejects on error', function (s) {
+        s.plan(1);
+        m.AWS = mockAWS({
+            changeResourceRecordSets: function (params, cb) {
+                return cb(true);
+            }
+        });
+        m.handler({}, {
+            succeed: function () {
+                s.fail('resolved');
+            }
+            , fail: function () {
+                s.pass('rejected');
+            }
+        });
+    });
 });

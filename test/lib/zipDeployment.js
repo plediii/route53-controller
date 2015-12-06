@@ -28,6 +28,17 @@ test('zipDeployment', function (t) {
         }, {}));
     });
 
+    t.test('Zips lambda-index without requiring params', function (s) {
+        s.plan(1);
+        m(mockZip({
+            file: function (path, data) {
+                if (path === 'lambda-index.js') {
+                    s.pass('Zipped lambda-index');
+                }
+            }
+        }));
+    });
+
     t.test('Zips lib folder', function (s) {
         s.plan(1);
         m(mockZip({

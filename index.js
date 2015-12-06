@@ -6,17 +6,6 @@ var fs = require('fs');
 var getResourceDefinition = require('./lib/getResourceDefinition');
 var updateRecordSets = require('./lib/updateRecordSets');
 
-var existsAsync = function (path) {
-    if (!path || !path.length) {
-        return Promise.resolve(false);
-    }
-    return new Promise(function (resolve) {
-        return fs.exists(path, function (exists) {
-            return resolve(exists);
-        });
-    });
-};
-
 module.exports = function (AWS, params) {
     var s3LocationPath = params.s3LocationPath;
     var resourcePath = params.resourcePath;
