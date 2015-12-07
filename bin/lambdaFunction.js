@@ -31,28 +31,26 @@ var updateFunctionCode = function (AWS, params) {
 var run = module.exports =  Promise.method(function (aws, zip, args) {
     var argv = require('minimist')(args);
     if (argv._.length === 0) {
-        if (argv._.length !== 1) {
-            console.error([
-                '',
-                'Update a lambda deployment.',
-                '',
-                'Usage: lambdaFunction action [options]',
-                '',
-                '',
-                '',
-                'Arguments:',
-                ' action                              Either "create" or "update" a lambda function.',
-                '',
-                'Options: ',
-                ' --name functionName                 The name of the lambda function (defaults to "route53-controller").',
-                ' --region awsRegion                  The AWS region in which the lambda function should exist.',
-                ' --resource resource.json            Include the resource.json from this path.',
-                ' --role roleARN                      The lambda function role ARN (required to create).',
-                ' --s3location s3location.json        Include the s3 location file from the this path.',
-                ''
-            ].join('\n'));
-            throw new Error('output location required.');
-        }
+        console.error([
+            '',
+            'Update a lambda deployment.',
+            '',
+            'Usage: lambdaFunction action [options]',
+            '',
+            '',
+            '',
+            'Arguments:',
+            ' action                              Either "create" or "update" a lambda function.',
+            '',
+            'Options: ',
+            ' --name functionName                 The name of the lambda function (defaults to "route53-controller").',
+            ' --region awsRegion                  The AWS region in which the lambda function should exist.',
+            ' --resource resource.json            Include the resource.json from this path.',
+            ' --role roleARN                      The lambda function role ARN (required to create).',
+            ' --s3location s3location.json        Include the s3 location file from the this path.',
+            ''
+        ].join('\n'));
+        throw new Error('output location required.');
     }
 
     var action = argv._[0];
