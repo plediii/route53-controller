@@ -92,13 +92,21 @@ test('lambdaFunction create', function (t) {
         s.plan(1);
         m(mockAWS(), mockZip({}), ['create'])
         .catch(function () {
-            s.pass('no create arguments rejected');
+            s.pass('create argument only rejected');
         });
     });
 
     t.test('rejects given only role ARN', function (s) {
         s.plan(1);
         m(mockAWS(), mockZip({}), ['create', '--role', 'roleARN'])
+        .catch(function () {
+            s.pass('no create arguments rejected');
+        });
+    });
+
+    t.test('rejects given only resource', function (s) {
+        s.plan(1);
+        m(mockAWS(), mockZip({}), ['create', '--resource', testResourceFile])
         .catch(function () {
             s.pass('no create arguments rejected');
         });
@@ -115,8 +123,10 @@ test('lambdaFunction create', function (t) {
 
     t.test('rejects given an unrecognized verb', function (s) {
         s.plan(1);
-        m(mockAWS(), mockZip({}), ['whatwhat', '--role', 'roleARN'])
-        .catch(function () {
+        console.log('whatwhat');
+        m(mockAWS(), mockZip({}), ['whatwhat', '--role', 'roleARN', '--resource', testResourceFile])
+        .catch(function (err) {
+            console.log(err);
             s.pass('unrecognized verb rejected');
         });
     });
@@ -139,6 +149,18 @@ test('lambdaFunction create', function (t) {
                 s.pass('Created lambda function');
             }
         }), mockZip(), ['create', '--role', 'roleName', '--resource', testResourceFile]);
+    });
+
+    t.test('rejectds on createfunction error', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            createFunction: function (params, cb) {
+                cb('error');
+            }
+        }), mockZip(), ['create', '--role', 'roleName', '--resource', testResourceFile])
+        .catch(function () {
+            s.pass('Rejected createFunction error');
+        });
     });
 
     t.test('Creates a lambda function a default name of route53-controller', function (s) {
@@ -256,6 +278,18 @@ test('lambdaFunction update', function (t) {
                 s.pass('Updated lambda function');
             }
         }), mockZip(), ['update', '--resource', testResourceFile]);
+    });
+
+    t.test('rejects on updateFunctionCode error', function (s) {
+        s.plan(1);
+        m(mockAWS({
+            updateFunctionCode: function (params, cb) {
+                return cb('error');
+            }
+        }), mockZip(), ['update', '--resource', testResourceFile])
+        .catch(function (err) {
+            s.pass('Rejected on updatedFunctionCode error');
+        });
     });
 
     t.test('Updates a lambda function with a default name of route53-controller', function (s) {
