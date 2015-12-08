@@ -198,38 +198,46 @@ a fake example HostedZone.
 * All instances tagged with the `Name` of `bar.example` in the `us-west-1` region are included as IPs in the record set `bar.example.com`.  
 * All instances tagged with the `Name` of `foo.example` in the `us-west-2` and `us-east-1` regions are included as IPs in the record set `foo.example.com`.
 
-## Uploading the AWS Lambda function
+## Uploading/Updating the AWS Lambda function
 
-`route53-controller` provides a convenience script to upload the
-Lambda function directly.  By default, *route53-contoller* will name
-the Lambda function as `route53-controller`.  You may specify a
-different name by providing the `--name` argument.
+`route53-controller` provides a convenience script,
+'bin/lambdaFunction' to upload and update the Lambda function directly.  By
+default, *route53-contoller* will name the Lambda function as
+`route53-controller`.  You may specify a different name by providing
+the `--name` argument.
 
-`upload-lambda` will first attempt to update an existing deployment.
-If the Lambda function does not already exist, `upload-lambda` will
-attempt to create one.  *route53-controller* requires the ARN of an
-existing IAM Role to create the Lambda function (the
-`create-policy.js` script described below may be used to create the
-IAM role).
-
+You may create the Lambda function by running
 ```
-$ node bin/upload-lambda.js --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
+$ node bin/lambdaFunction.js create --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
 ```
 
-## Creating a Lambda deployment
+A role ARN must be provided when creating the lambda function.  Also,
+not all regions support Lambda functions, so you may need to specify
+the region explicitly.  The region where the Lambda function does not
+affect which resource record sets and ec2 instances
+`route53-controller` may change or see.
+
+An existing `route53-controller` may be updated by running
+```
+$ node bin/lambdaFunction.js update --resource resource.json --region=us-west-2
+```
+Again, the region may be required, but the role ARN is not requirewd
+to update the Lambda function.
+
+## Creating a Lambda deployment package
 
 If you prefer to upload the function manually *route53-controller* can
-be used to create the AWS Lambda deployment package.  Follow, for
+be used to create the AWS Lambda deployment package, but not upload it.  Follow, for
 example, the [AWS Lambda
 walkthrough](http://docs.aws.amazon.com/lambda/latest/dg/walkthrough-s3-events-adminuser-prepare.html).
 Create a lambda execution role with the required `route53-controller`
 IAM policy, and upload the zip file created by
-`./bin/lambda-package.js`.
+`./bin/createLambdaPackage.js`.
 
+For example:
 ```
-$ node bin/lambda-package.js --resource resource.json
+$ node bin/createLambdaPackage.js --resource resource.json
 ```
-
 
 ## Invoking the Lambda function
 
@@ -269,23 +277,22 @@ be *attached* to roles or users by including the `--createPolicy`
 option:
 
 ```
-$ node bin/create-policy.js --resource resource.json --createPolicy route53-controller
+$ node bin/createPolicy.js --resource resource.json --createPolicy route53-controller
 ```
 
-`./bin/create-policy.js` may also attach the policy inline for an
+`./bin/createPolicy.js` may also attach the policy inline for an
 existing user or role by providing the `--userPolicy` or
 `--rolePolicy` respectively.
 
 ```
-$ node bin/create-policy.js --resource resource.json --rolePolicy lambda_role
+$ node bin/createPolicy.js --resource resource.json --rolePolicy lambda_role
 ```
 
 If an `s3location.json` file is provided, the policy will include read
 access to that s3 location.
 ```
-$ node bin/create-policy.js --resource resource.json --s3location s3location.json
+$ node bin/createPolicy.js --resource resource.json --s3location s3location.json
 ```
-
 
 ## Storing `resource.json` in S3
 
@@ -305,20 +312,21 @@ The S3 location is describe by an `s3Location.json` file.  For example:
 }
 ```
 
-The resource file may be uploaded by `./bin/upload.js`
+The resource file may be uploaded by `./bin/uploadResourceDefinition.js`
 
 ```
-$ node bin/upload.js s3Location.json resource.json
+$ node bin/uploadResourceDefinition.js s3Location.json resource.json
 ```
 
-Now `route53-controller` requires read access to the static s3 location.
+Now `route53-controller` requires read access to the static s3
+location.  The necessary policy may be created by
 ```
-$ node bin/create-policy.js --s3location s3Location.json
+$ node bin/createPolicy.js --s3location s3Location.json
 ```
 
 Then, we may provide the `s3location.json` file in place of `resource.json`.
 ```
-$ node bin/update.js --s3location s3Location.json
-$ node bin/lambda-package.js --s3location s3Location.json
+$ node bin/lambdaFunction.js update --s3location resource.json --region=us-west-2
+$ node bin/lambdaFunction.js --s3location s3Location.json
 ```
 
