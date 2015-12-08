@@ -1,7 +1,7 @@
 /*jslint node: true */
 "use strict";
 
-var r53controller = require('.');
+var r53controller = require('./index');
 
 exports.paths = {
     resourcePath: './resource.json'
