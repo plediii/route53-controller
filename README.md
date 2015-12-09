@@ -312,10 +312,10 @@ The S3 location is describe by an `s3Location.json` file.  For example:
 }
 ```
 
-The resource file may be uploaded by `./bin/uploadResourceDefinition.js`
+The resource file may be uploaded by `./bin/uploadResource.js`
 
 ```
-$ node bin/uploadResourceDefinition.js s3Location.json resource.json
+$ node bin/uploadResource.js s3Location.json resource.json
 ```
 
 Now `route53-controller` requires read access to the static s3
