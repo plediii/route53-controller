@@ -14,13 +14,15 @@ var testS3Location = JSON.parse(fs.readFileSync(testS3LocationFile));
 
 var mockAWS = function (mockParams) {
     return {
-        S3: {
-            upload: function (params, cb) {
-                if (params && params.onUpload) {
-                    params.onUpload(params, cb);
+        S3: function () {
+            return {
+                upload: function (params, cb) {
+                    if (mockParams && mockParams.onUpload) {
+                        return mockParams.onUpload(params, cb);
+                    }
+                    return cb(null, {});
                 }
-                return cb(null, {});
-            }
+            };
         }
     };
 };
