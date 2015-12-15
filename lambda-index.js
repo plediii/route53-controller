@@ -2,6 +2,7 @@
 "use strict";
 
 var r53controller = require('./index');
+var fs = require('fs');
 
 exports.paths = {
     resourcePath: './resource.json'
@@ -11,7 +12,11 @@ exports.paths = {
 exports.AWS = require('./lib/aws');
 
 exports.handler = function (event, context) {
-    return r53controller(exports.AWS, exports.paths)
+    var paths = {
+        resourcePath: (fs.existsSync(exports.paths.resourcePath) && exports.paths.resourcePath)
+        , s3LocationPath: (fs.existsSync(exports.paths.s3LocationPath) && exports.paths.s3LocationPath)
+    };
+    return r53controller(exports.AWS, paths)
         .then(function (data) {
             context.succeed(data);
         })
