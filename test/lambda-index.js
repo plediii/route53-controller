@@ -47,14 +47,18 @@ var mockAWS = function (mockParams) {
     };
 };
 
-test('lambda-index', function (t) {
-    m.paths = {
+var testPaths = function () {
+    return {
         resourcePath: testResourceFile
         , s3LocationPath: testS3LocationFile
     };
+};
+
+test('lambda-index', function (t) {
 
     t.test('module fetches instance information', function (s) {
         s.plan(1);
+        m.paths = testPaths();
         m.AWS = mockAWS({
             describeInstances: function () {
                 s.pass('Described instances');
@@ -65,6 +69,7 @@ test('lambda-index', function (t) {
 
     t.test('module updates fetches s3location information', function (s) {
         s.plan(1);
+        m.paths = testPaths();
         m.AWS = mockAWS({
             getObject: function () {
                 s.pass('Got object');
@@ -75,6 +80,7 @@ test('lambda-index', function (t) {
 
     t.test('module updates record sets', function (s) {
         s.plan(1);
+        m.paths = testPaths();
         m.AWS = mockAWS({
             changeResourceRecordSets: function () {
                 s.pass('updated record sets');
@@ -85,6 +91,7 @@ test('lambda-index', function (t) {
 
     t.test('resolves on success', function (s) {
         s.plan(1);
+        m.paths = testPaths();
         m.AWS = mockAWS({
             changeResourceRecordSets: function (params, cb) {
                 return cb();
@@ -100,8 +107,39 @@ test('lambda-index', function (t) {
         });
     });
 
+    t.test('resolves even if s3location path is not present', function (s) {
+        s.plan(1);
+        m.paths = testPaths();
+        m.paths.s3LocationPath = '/not/exist';
+        m.AWS = mockAWS({});
+        m.handler({}, {
+            succeed: function () {
+                s.pass('Resolved');
+            }
+            , fail: function () {
+                s.fail('rejected');
+            }
+        });
+    });
+
+    t.test('resolves even if resource path is not present', function (s) {
+        s.plan(1);
+        m.paths = testPaths();
+        m.paths.resourcePath = '/not/exist';
+        m.AWS = mockAWS({});
+        m.handler({}, {
+            succeed: function () {
+                s.pass('Resolved');
+            }
+            , fail: function () {
+                s.fail('rejected');
+            }
+        });
+    });
+
     t.test('rejects on error', function (s) {
         s.plan(1);
+        m.paths = testPaths();
         m.AWS = mockAWS({
             changeResourceRecordSets: function (params, cb) {
                 return cb(true);
