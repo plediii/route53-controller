@@ -462,16 +462,16 @@ test('updateRecordSets', function (t) {
                     };
                 }
             }, 'resourceName', {
-                PrivateIP: true
-                , Instances: [
+                Instances: [
                     {
+                        PrivateIP: true
                     }
                 ]
             })
             .then(function (change) {
                 r.ok(change, 'Returned change');
                 r.equal(change.Action, 'UPSERT');
-                r.equal('127.1.1.1', change.ResourceRecordSet.ResourceRecords[0].Value);
+                r.equal(change.ResourceRecordSet.ResourceRecords[0].Value, '127.1.1.1');
 	    });
         });
     });
