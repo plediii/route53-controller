@@ -2,19 +2,17 @@
 
 When launching new EC2 instances in AWS, it is often desirable to add
 the new instance's IP to a route53 record set.  For instance when an
-autoscaling group launches a new node, AWS provides facilities to
-automatically add the instances to a load balancer, but there are no
-facilities to automatically add the new instance to a route53 record
-set. 
+autoscaling group launches a new node, it would be convenient if the
+node's IP could be automatically added to a record set, similarly to
+the way it can be automatically added to a load balancer group.
 
-*route53-controller* provides the service to automatically add
-instances to Route53 record sets.  You provide a `resource.json`
-describing which instances to add to which record set, and
-*route53-controller* adds the appropriate IPs to your record sets.
+*route53-controller* provides a service to automatically add instances
+to Route53 record sets.  You provide a `resource.json` describing
+which instances to add to which record set, and *route53-controller*
+adds the appropriate IPs to your record sets when invoked.
 
-`route53-controller` can be run as standalone CLI script, but also
-provides scripts which build and install an AWS Lambda function to
-perform the task.  
+`route53-controller` can be run standalone from a CLI, and can also be
+uploaded as an AWS Lambda function, where it can be triggered by SNS.
 
 ## Resource description: *resource.json* 
 
@@ -22,9 +20,9 @@ The instances and resource record sets to which to add the instances'
 IPs are described by a JSON format, referred to as *resource.json*.
 
 Given a `resource.json` we may immediately update our resource record
-sets by using `./bin/update.js`. It is not necessary to upload a Lambda function.
+sets by using `./bin/updateRecordSets.js`.
 ```
-$ node bin/update.js --resource resource.json
+$ node bin/updateRecordSets.js --resource resource.json
 ```
 
 The root structure of the *resource.json* is 
@@ -41,33 +39,32 @@ The root structure of the *resource.json* is
 
 The *HostedZone* is the ID of a pre-existing route53 Hosted Zone.
 There may be only *HostedZone* one per *resource.json*.  If multiple
-*HostedZone*s must be controlled, you will need to create additional
-*route53-controller* resource descriptions, and AWS Lambda functions.
+*HostedZone*s must be controlled, you will need to create multiple
+*route53-controller* resource descriptions.
 
 #### **Resources**
 
 The *Resources* attribute is a list of all the record sets which will
-be modified, along with the filters describing the instances whose IPs
-will be associated to the record set.  There may be one or more
-instances/record set pairs.  The format of the *Resources* is
+be modified, along with filters describing the instances whose IPs
+will be associated to the record set. The format of the *Resources* is
 
 ```javascript
 "Resources": {
    "ResourceID": {
       "ResourceRecordSet": {  
-         /* Description of the Route53 resource record set update */
+         /* Description of the Route53 resource record update */
       },
       "Instances": [
-         /* One or more EC2 instance descriptions to be associated to the route53 record set */
+         /* One or more EC2 instance descriptions to be associated to the Route53 record set */
       ]
       
    }
 }
 ```
 
-The **ResourceID** of the *instances*/*record set* pair is used to *name*
-the pair for convenience, but has no effect on the logical operation
-of the record set update.  Any valid JSON attribute name is acceptable.
+The **ResourceID** is a convenience *name* describing the update, but
+has no effect on the logical operation of the record set update.  Any
+valid JSON attribute name is acceptable.
 
 ##### ResourceRecordSet
 
@@ -79,24 +76,26 @@ The basic required format is
  }
 ```
 
-*route53-controller* will locate the instances to be used in the
-record set, then it will use the *ResourceRecordSet* set to update the
-record.
+*route53-controller* will locate the instances to be added to the
+record set, then it will use the *ResourceRecordSet* JSON object to
+update the record.
 
+The *ResourceRecordSet* object will used as *the* `ResourceRecordSet`
+parameter in a call to the [AWS SDK
+**route53.changeResourceRecordSets**
+function](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property),
+*except*:
+* *ResourceRecords* will be set to to the list of instances' IPs
+* The required *Type* will default to "A"
 
 After *route53-controller* executes, **all** of the IPs associated
-with the record set will be replaced.
-
-The *ResourceRecordSet* object will used as the `ResourceRecordSet`
-parameter in a call to the AWS SDK
-**route53.changeResourceRecordSets** function, except:
-
-* *ResourceRecords* will be set to to the list of instance IPs
-* The required *Type* will default to "A"
+with the record set will be replaced.  Except, if no instances are
+found, there will be no change to the record set.
 
  See the [changeResourceRecordSets API
 documentation](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Route53.html#changeResourceRecordSets-property)
-for more information about attributes.
+for more information about attributes which may be included in the
+*ResourceRecordSet* object.
 
 ##### Instances
 
