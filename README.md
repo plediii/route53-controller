@@ -117,7 +117,7 @@ format is
 
 By default, the *public IP* of each EC2 instance will be used.
 However, if the **PrivateIP** attribute is present and `true`, then
-the *private IPs* will be used instead.
+the instance's *private IP* will be used instead.
 
 The **Region** attribute specifies the AWS region in which to find the
 instances. Only *one* region may be specified per *instance
@@ -210,17 +210,18 @@ You may create the Lambda function by running
 $ node bin/lambdaFunction.js create --resource resource.json --role arn:aws:iam::NNNNNNNNNNNN:role/lambda_role --region=us-west-2
 ```
 
-A role ARN must be provided when creating the lambda function.  Also,
-not all regions support Lambda functions, so you may need to specify
-the region explicitly.  The region where the Lambda function does not
-affect which resource record sets and ec2 instances
-`route53-controller` may change or see.
+A role ARN must be provided when creating the lambda function, but is
+not necessary to update an existing lambda function.  Also, not all
+regions support Lambda functions, so you may need to specify the
+region explicitly.  Fortunately, the region where the Lambda function
+is deployed does not affect its ability to find IPs of instances in
+other regions, nor does it affect its ability to update route53 records sets.
 
 An existing `route53-controller` may be updated by running
 ```
 $ node bin/lambdaFunction.js update --resource resource.json --region=us-west-2
 ```
-Again, the region may be required, but the role ARN is not requirewd
+Again, the region may be required, but the role ARN is not required
 to update the Lambda function.
 
 ## Creating a Lambda deployment package
@@ -266,12 +267,12 @@ When updating record sets either in CLI mode, or in AWS Lambda, AWS
 requires appropriate IAM permissions to both describe the EC2
 instances, and modify the record sets.
 
-The script `./bin/create-policy.js` can be used to create the
-necessary policy.  `create-policy.js` requires either a local copy of
+The script `./bin/createPolicy.js` can be used to create the
+necessary policy.  `createPolicy.js` requires either a local copy of
 the `resource.json` file or an `s3location.json` file describing where
 to fetch the `resource.json` (more information below).
 
-Alternatively, `./bin/create-policy.js` can create a policy which may
+Alternatively, `./bin/createPolicy.js` can create a policy which may
 be *attached* to roles or users by including the `--createPolicy`
 option:
 
@@ -287,8 +288,8 @@ existing user or role by providing the `--userPolicy` or
 $ node bin/createPolicy.js --resource resource.json --rolePolicy lambda_role
 ```
 
-If an `s3location.json` file is provided, the policy will include read
-access to that s3 location.
+If an `s3location.json` file is provided, the policy will include permission to read
+the *resource.json* S3 object.
 ```
 $ node bin/createPolicy.js --resource resource.json --s3location s3location.json
 ```
