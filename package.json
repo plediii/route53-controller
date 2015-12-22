@@ -8,10 +8,12 @@
       "coverage": "istanbul cover test",
     "test": "node test"
   },
-  "bin": {
-    "route53-controller-policy": "./bin/create-policy.js",
-    "route53-controller-update": "./bin/update.js",
-    "route53-controller-upload": "./bin/upload.js"
+ "bin": {
+     "createLambdaPackage": "./bin/createLambdaPackage.js",
+     "createPolicy": "./bin/createPolicy.js",
+     "lambdaFunction": "./bin/lambdaFunction.js",
+     "updateRecordSets": "./bin/updateRecordSets.js",
+     "uploadResource": "./bin/uploadResource.js"
   },
   "repository": {
     "type": "git",
