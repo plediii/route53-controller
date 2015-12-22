@@ -1,3 +1,7 @@
+#!/usr/bin/env node
+// -*- mode: javascript -*-
+/*jslint node: true */
+/* global -Promise */
 "use strict";
 
 var Promise = require('bluebird');
