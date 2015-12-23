@@ -1,0 +1,24 @@
+{
+    "HostedZone": "Z148QEXAMPLE8V",
+    "Resources": {
+        "bar.example": {
+            "Instances": [
+                {
+                    "PrivateIP": true,
+                    "Filters": [
+                        {
+                            "Name": "tag:Name",
+                            "Values": [
+                                "bar.example"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "ResourceRecordSet": {
+                "Name": "bar.example.com",
+                "TTL": 30
+            }
+        }
+    }
+}

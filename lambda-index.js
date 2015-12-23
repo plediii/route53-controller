@@ -1,30 +1,22 @@
 /*jslint node: true */
 "use strict";
 
-var Promise = require('bluebird');
-var fs = Promise.promisifyAll(require('fs'));
-var updateRecordSets = require('./lib/updateRecordSets');
+var r53controller = require('./index');
+var fs = require('fs');
 
-var existsAsync = function (path) {
-    return new Promise(function (resolve) {
-        return fs.exists(path, function (exists) {
-            return resolve(exists);
-        });
-    });
+exports.paths = {
+    resourcePath: './resource.json'
+    , s3LocationPath: './s3Location.json'
 };
 
-var s3LocationPath = './s3Location.json';
-var resourcePath = './resource.json';
+exports.AWS = require('./lib/aws');
 
-exports.handler = function(event, context) {
-    return Promise.join(existsAsync(s3LocationPath)
-                        , existsAsync(resourcePath)
-                        , function (s3LocationExists, resourceExists) {
-                            return updateRecordSets({
-                                s3Location: s3LocationExists && s3LocationPath
-                                , resource: resourceExists && resourcePath
-                            });
-                        })
+exports.handler = function (event, context) {
+    var paths = {
+        resourcePath: (fs.existsSync(exports.paths.resourcePath) && exports.paths.resourcePath)
+        , s3LocationPath: (fs.existsSync(exports.paths.s3LocationPath) && exports.paths.s3LocationPath)
+    };
+    return r53controller(exports.AWS, paths)
         .then(function (data) {
             context.succeed(data);
         })
