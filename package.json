@@ -1,19 +1,19 @@
 {
   "name": "route53-controller",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Update route53 records based on describeInstances filters.",
   "main": "index.js",
   "scripts": {
     "lint": "jshint *.js lib bin test",
-      "coverage": "istanbul cover test",
+    "coverage": "istanbul cover test",
     "test": "node test"
   },
- "bin": {
-     "createLambdaPackage": "./bin/createLambdaPackage.js",
-     "createPolicy": "./bin/createPolicy.js",
-     "lambdaFunction": "./bin/lambdaFunction.js",
-     "updateRecordSets": "./bin/updateRecordSets.js",
-     "uploadResource": "./bin/uploadResource.js"
+  "bin": {
+    "createLambdaPackage": "./bin/createLambdaPackage.js",
+    "createPolicy": "./bin/createPolicy.js",
+    "lambdaFunction": "./bin/lambdaFunction.js",
+    "updateRecordSets": "./bin/updateRecordSets.js",
+    "uploadResource": "./bin/uploadResource.js"
   },
   "repository": {
     "type": "git",
