@@ -39,6 +39,7 @@ The root structure of the *resource.json* is
 
 The *HostedZone* is the ID of a pre-existing route53 Hosted Zone.
 There may be only *HostedZone* one per *resource.json*.  If multiple
+
 *HostedZone*s must be controlled, you will need to create multiple
 *route53-controller* resource descriptions.
 
