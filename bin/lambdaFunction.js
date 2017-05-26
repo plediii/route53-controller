@@ -66,7 +66,7 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
     var s3location = argv.s3location;
     var functionName = argv.name || 'route53-controller';
     if (!(resource || s3location)) {
-        throw new Error('--resource or --s3location is required to create a new lambda function.');
+        throw new Error('--resource or --s3location is required to create a lambda function deployment package.');
     }
     var roleARN = argv.role;
     var zipFile = zipDeployment(zip, {
@@ -86,7 +86,7 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
                     , Handler: 'lambda-index.handler'
                     , Role: roleARN
                     , Description: 'route53-controller Lambda function'
-                    , Runtime: 'nodejs'
+                    , Runtime: 'nodejs6.10'
                     , Timeout: 10
                 });
             });
