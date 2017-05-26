@@ -86,7 +86,7 @@ var run = module.exports =  Promise.method(function (aws, zip, args) {
                     , Handler: 'lambda-index.handler'
                     , Role: roleARN
                     , Description: 'route53-controller Lambda function'
-                    , Runtime: 'nodejs'
+                    , Runtime: 'nodejs6.10'
                     , Timeout: 10
                 });
             });
