@@ -1,6 +1,6 @@
 {
   "name": "route53-controller",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Update route53 records based on describeInstances filters.",
   "main": "index.js",
   "scripts": {
